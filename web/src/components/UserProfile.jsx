@@ -40,7 +40,7 @@ function UserProfile() {
 
   const fetchUserData = async (token) => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/me", {
+      const response = await fetch("http://localhost:5001/api/auth/me", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -77,7 +77,7 @@ function UserProfile() {
   const updateProfile = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:5000/api/auth/update_profile", {
+      const response = await fetch("http://localhost:5001/api/auth/update_profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -127,7 +127,7 @@ function UserProfile() {
     }
   
     try {
-      const response = await fetch("http://localhost:5000/api/auth/new_password", {
+      const response = await fetch("http://localhost:5001/api/auth/new_password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

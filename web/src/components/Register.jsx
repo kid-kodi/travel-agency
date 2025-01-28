@@ -63,7 +63,7 @@ const Register = () => {
     setErrorMessage("");
     
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch("http://localhost:5001/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -114,7 +114,7 @@ const Register = () => {
   // Vérification du code d'activation
   const handleVerification = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/activation", {
+      const response = await fetch("http://localhost:5001/api/auth/activation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

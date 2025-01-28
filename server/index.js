@@ -15,6 +15,7 @@ const usersRoutes = require("./routes/users");
 const itemsRoutes = require("./routes/items");
 const uploadRoutes = require("./routes/upload");
 const reservationRoutes = require('./routes/reservation'); // Importation des routes de réservation
+const paymentRoutes = require("./routes/payment"); // Importation des routes de paiement
 
 
 //app configuration
@@ -47,6 +48,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/items", itemsRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use('/api/reservation', reservationRoutes); // Utilisation des routes de réservation
+app.use("/api/payment", paymentRoutes); 
 
 // Errors handlers
 app.use(ErrorHandler);

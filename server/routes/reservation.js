@@ -14,6 +14,7 @@ router.post(
     auth,
     CatchAsyncError(async (req, res, next) => {
       try {
+        console.log("Données reçues :", req.body); 
         const reservation = new Reservation(req.body);
         reservation.user = req.user._id;
         const response = await reservation.save();

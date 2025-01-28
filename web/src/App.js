@@ -12,10 +12,13 @@ import ResetPassword from "./components/ResetPassword";
 import { AlertProvider } from "./contexts/AlertContext";
 import UserProfile from "./components/UserProfile";
 import "./index.css";
+
 import 'primeicons/primeicons.css'; 
 import "react-datepicker/dist/react-datepicker.css";
 
 import MethodePaiement from "./components/MethodePaiement";
+import Payment from "./components/Payement/Payement";
+import Completion from "./components/Payement/Completion";
 
 export default function App() {
   return (
@@ -30,6 +33,8 @@ export default function App() {
             <Route path="/user-profile" element={<UserProfile/>}/>
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/Paiement" element={<MethodePaiement/>} />
+            <Route path="/Stripe" element={<Payment />} />
+            <Route path="/completion" element={<Completion />} />
           </Route>
 
           {/* Route sans Navbar */}

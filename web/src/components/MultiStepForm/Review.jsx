@@ -5,49 +5,36 @@ import MultiStepFromContext from "./MultiStepFromContext";
 import TicketGenerator from "./TicketGenerator";
 import { useNavigate } from "react-router-dom";
 import { Alert, Stack } from '@mui/material'; // Importer les composants MUI
+import MethodePaiement from "../MethodePaiement";
 
 const Review = ({ successMessage, setSuccessMessage }) => {
   const { details, address, prev } = useContext(MultiStepFromContext);
+  console.log("Valeur de address :", address);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
   const [showTicket, setShowTicket] = useState(false);
   const [loading, setLoading] = useState(false);
  
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("http://localhost:5000/api/reservation/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          departureCity: address.departureCity,
-          arrivalCity: address.arrivalCity,
-          date: address.date,
-          tarif: address.tarif,
-          horaire: details.horaire,
-          seatNumber: details.seatNumber,
-          user: localStorage.getItem("userId"),
-        }),
-      });
 
-      const data = await response.json();
-      if (response.ok) {
-        setSuccessMessage(data.message || "Réservation créée avec succès !");
-        setTimeout(() => {
-          window.location.reload(); // Redirection après succès
-        }, 2000);
-      } else {
-        throw new Error(data.message || "Une erreur est survenue");
-      }
-    } catch (error) {
-      console.error(error);
-      setSuccessMessage(""); // Réinitialiser le message de succès en cas d'erreur
-    } finally {
-      setLoading(false);
-    }
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
+
+
+     // Stocker toutes les informations nécessaires
+     const reservationData = {
+      token, // Stocker le token
+      details, // Stocker les détails de la réservation (horaire, numéro de siège, etc.)
+      address, // Stocker l'adresse du trajet (ville de départ, d'arrivée, tarif, etc.)
+      formattedDate, // Ajouter la date formatée
+    };
+
+    // Sauvegarde dans localStorage
+    localStorage.setItem("reservationData", JSON.stringify(reservationData));
+    setLoading(false);
+    setShowPaymentMethods(true);
+
   };
 
   const formattedDate = new Date(address.date).toLocaleDateString("fr-FR", {
@@ -57,11 +44,20 @@ const Review = ({ successMessage, setSuccessMessage }) => {
     day: "numeric",
   });
 
+  
+
   if (showTicket) {
     return <TicketGenerator />;
   }
 
-
+  if (showPaymentMethods) {
+    return <MethodePaiement onSelectMethod={(index) => {
+      if (index === 3) { // Stripe correspond à l'index 3
+        navigate("/Stripe");
+      }
+    }} />;
+  }
+  
   return (
     <div className={"details__wrapper"}>
       <style jsx>{`
@@ -94,10 +90,7 @@ const Review = ({ successMessage, setSuccessMessage }) => {
               Retour
             </Button>
             <Button type="primary" onClick={handleSubmit} loading={loading}>
-              Confirmer et Générer
-            </Button>
-            <Button type="primary" onClick={() => navigate("/Paiement")}>
-              Méthode de Paiement
+              Confirmer et Payer
             </Button>
           </div>
         </Col>

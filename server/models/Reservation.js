@@ -11,6 +11,7 @@ const reservationSchema = new Schema(
     seatNumber: { type: String, required: true },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     dateReservation: { type: Date, required: true, default: Date.now },
+    paymentStatus: { type: String, required: true },
   },
   { timestamps: true }
 );

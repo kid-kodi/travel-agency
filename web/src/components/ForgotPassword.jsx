@@ -26,7 +26,7 @@ const ForgotPassword = () => {
     setCanResend(false); // Désactiver le bouton de renvoi du code
   
     try {
-      const response = await fetch("http://localhost:5000/api/auth/forgot-password", {
+      const response = await fetch("http://localhost:5001/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -72,7 +72,7 @@ const ForgotPassword = () => {
   // Vérification du code
   const handleVerifyCode = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/verify-code", {
+      const response = await fetch("http://localhost:5001/api/auth/verify-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ activation_code: code }),
@@ -92,7 +92,7 @@ const ForgotPassword = () => {
   // Changement du mot de passe
   const handleResetPassword = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/reset-password", {
+      const response = await fetch("http://localhost:5001/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: code, password: newPassword }),

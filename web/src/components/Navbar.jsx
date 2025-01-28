@@ -26,7 +26,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/logout", {
+      await fetch("http://localhost:5001/logout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

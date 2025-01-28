@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 import CardActionArea from "@mui/material/CardActionArea";
 import { useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Icône de flèche
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const paymentMethods = [
   {
@@ -32,14 +32,12 @@ const paymentMethods = [
   },
 ];
 
-function MethodePaiement() {
+function MethodePaiement({ onSelectMethod }) {
   const [selectedMethod, setSelectedMethod] = React.useState(null);
   const navigate = useNavigate();
 
   return (
     <Card sx={{ maxWidth: 500, margin: "auto", padding: 2, textAlign: "center", position: "relative" }}>
-      
-      {/* 🔹 Titre */}
       <Typography
         variant="h6"
         sx={{
@@ -53,7 +51,6 @@ function MethodePaiement() {
         Sélectionnez votre méthode de paiement
       </Typography>
 
-      {/* 💳 Liste des moyens de paiement */}
       <Box
         sx={{
           display: "flex",
@@ -79,7 +76,12 @@ function MethodePaiement() {
             }}
           >
             <CardActionArea
-              onClick={() => setSelectedMethod(index)}
+              onClick={() => {
+                setSelectedMethod(index);
+                if (onSelectMethod) {
+                  onSelectMethod(index);
+                }
+              }}
               data-active={selectedMethod === index ? "" : undefined}
               sx={{
                 height: "100%",
@@ -89,18 +91,16 @@ function MethodePaiement() {
                 },
               }}
             >
-              {/* 📷 Image bien ajustée */}
               <CardMedia
                 component="img"
                 image={method.image}
-                alt={method.title}
+                alt={method.description}
                 sx={{
                   height: 50,
                   objectFit: "contain",
                   margin: "auto",
                 }}
               />
-
               <CardContent sx={{ textAlign: "center", flexGrow: 1, padding: "8px" }}>
                 <Typography variant="caption" color="text.secondary">
                   {method.description}
@@ -111,26 +111,25 @@ function MethodePaiement() {
         ))}
       </Box>
 
-      {/* 🔙 Flèche pour revenir à l'accueil */}
       <Button
-         variant="contained"
-            startIcon={<ArrowBackIcon />} // Icône de flèche
-            onClick={() => navigate("/")}
-            sx={{
-                position: "absolute",
-                bottom: 10,
-                left: "50%",
-                transform: "translateX(-50%)",
-                fontSize: "0.8rem", // Réduction de la taille de la police
-                padding: "3px 8px", // Réduction de l'espace autour du texte
-                backgroundColor: "orange", // Couleur du bouton
-                "&:hover": {
-                backgroundColor: "#ff9800", // Légère variation de couleur au survol
-                },
-         }}
-         >
+        variant="contained"
+        startIcon={<ArrowBackIcon />}
+        onClick={() => navigate("/")}
+        sx={{
+          position: "absolute",
+          bottom: 10,
+          left: "50%",
+          transform: "translateX(-50%)",
+          fontSize: "0.8rem",
+          padding: "3px 8px",
+          backgroundColor: "orange",
+          "&:hover": {
+            backgroundColor: "#ff9800",
+          },
+        }}
+      >
         Retour
-    </Button>
+      </Button>
     </Card>
   );
 }

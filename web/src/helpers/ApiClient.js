@@ -30,33 +30,74 @@ export default class ApiClient {
   }
 
   async get(url, options = {}) {
-    return axios
-      .get(this.base_url + url, { ...this.authHeader(), ...options })
-      .then((resp) => resp.data)
-      .catch((err) => ({ error: err.response.data }));
-  }
-
-  async post(url, payload = {}, options = {}) {
-    return axios
-      .post(this.base_url + url, payload, { ...this.authHeader(), ...options })
-      .then((resp) => resp.data)
-      .catch((err) => ({ error: err.response.data }));
-  }
-
-  async put(url, payload = {}, options = {}) {
-    return axios
-      .put(this.base_url + url, payload, { ...this.authHeader(), ...options })
-      .then((resp) => resp.data)
-      .catch((err) => ({ error: err.response.data }));
-  }
-
-  async delete(url, options = {}) {
-    return axios
-      .delete(this.base_url + url, {
+    try {
+      const resp = await axios.get(this.base_url + url, {
         ...this.authHeader(),
         ...options,
-      })
-      .then((resp) => resp.data)
-      .catch((err) => ({ error: err.response.data }));
+      });
+      return resp.data;
+    } catch (err) {
+      if (err.response) {
+        // Si err.response existe, on renvoie err.response.data
+        return { error: err.response.data };
+      } else {
+        // Si err.response n'existe pas, on gère l'erreur autrement
+        return { error: "Erreur de réseau ou serveur inaccessible" };
+      }
+    }
   }
-}
+  
+  async post(url, payload = {}, options = {}) {
+    try {
+      const resp = await axios.post(this.base_url + url, payload, {
+        ...this.authHeader(),
+        ...options,
+      });
+      return resp.data;
+    } catch (err) {
+      if (err.response) {
+        // Si err.response existe, on renvoie err.response.data
+        return { error: err.response.data };
+      } else {
+        // Si err.response n'existe pas, on gère l'erreur autrement
+        return { error: "Erreur de réseau ou serveur inaccessible" };
+      }
+    }
+  }
+  
+  async put(url, payload = {}, options = {}) {
+    try {
+      const resp = await axios.put(this.base_url + url, payload, {
+        ...this.authHeader(),
+        ...options,
+      });
+      return resp.data;
+    } catch (err) {
+      if (err.response) {
+        // Si err.response existe, on renvoie err.response.data
+        return { error: err.response.data };
+      } else {
+        // Si err.response n'existe pas, on gère l'erreur autrement
+        return { error: "Erreur de réseau ou serveur inaccessible" };
+      }
+    }
+  }
+  
+  async delete(url, options = {}) {
+    try {
+      const resp = await axios.delete(this.base_url + url, {
+        ...this.authHeader(),
+        ...options,
+      });
+      return resp.data;
+    } catch (err) {
+      if (err.response) {
+        // Si err.response existe, on renvoie err.response.data
+        return { error: err.response.data };
+      } else {
+        // Si err.response n'existe pas, on gère l'erreur autrement
+        return { error: "Erreur de réseau ou serveur inaccessible" };
+      }
+    }
+  }
+}  

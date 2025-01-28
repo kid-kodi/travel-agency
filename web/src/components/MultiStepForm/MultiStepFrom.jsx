@@ -61,7 +61,7 @@ const MultiStepForm = () => {
 
   return (
     <Provider value={{ details, setDetails, address, setAddress, next, prev }}>
-      <div className="multi-step-container" style={{ justifyContent: 'flex-center',marginBottom:'12%'}}>
+      <div className="multi-step-container" style={{ justifyContent: 'flex-center',marginBottom:'1%'}}>
       {successMessage && (
         <Stack 
         sx={{ 
