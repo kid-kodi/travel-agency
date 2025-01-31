@@ -56,7 +56,8 @@ router.get(
 
 // GET ALL RESERVATIONS
 router.get(
-  "/",
+  "/all",
+  
   CatchAsyncError(async (req, res, next) => {
     try {
       let reservations = await Reservation.find();

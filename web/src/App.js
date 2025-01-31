@@ -5,6 +5,7 @@ import AppLayout from "./components/AppLayout";
 import ScrollToTop from "./components/ScrollToTop";
 import ApiProvider from "./contexts/ApiProvider";
 import Navbar from "./components/Navbar";
+import { Outlet } from "react-router-dom"; // Ajout de Outlet
 import Register from "./components/Register";
 import Login from "./components/Login";
 import ForgotPassword from "./components/ForgotPassword";
@@ -12,6 +13,7 @@ import ResetPassword from "./components/ResetPassword";
 import { AlertProvider } from "./contexts/AlertContext";
 import UserProfile from "./components/UserProfile";
 import "./index.css";
+import DashboardAdmin from "./components/DashboardAdmin";
 
 import 'primeicons/primeicons.css'; 
 import "react-datepicker/dist/react-datepicker.css";
@@ -23,6 +25,7 @@ import Completion from "./components/Payement/Completion";
 export default function App() {
   return (
     <>
+    
      <AlertProvider>
       <ApiProvider>
         <ScrollToTop />
@@ -36,6 +39,8 @@ export default function App() {
             <Route path="/Stripe" element={<Payment />} />
             <Route path="/completion" element={<Completion />} />
           </Route>
+
+          <Route path="/admin/*" element={<DashboardAdmin />} />
 
           {/* Route sans Navbar */}
           <Route path="register" element={<Register />} /> {/* 🚀 Page sans Navbar */}
