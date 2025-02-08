@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { ReservationSmartTable } from './ReservationSmartTable';
+// import 'bootstrap/dist/css/bootstrap.min.css'
+// import '@coreui/coreui/dist/css/coreui.min.css'
 
 const Reservation = () => {
   return (

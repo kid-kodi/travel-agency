@@ -1,4 +1,5 @@
 const express = require("express");
+const { io } = require("../index"); 
 const Reservation = require("../models/Reservation");
 const auth = require("../middleware/auth");
 const router = express.Router();
@@ -7,29 +8,31 @@ const excelToJson = require("convert-excel-to-json");
 const Errors = require("../helpers/Errors");
 const CatchAsyncError = require("../helpers/CatchAsyncError");
 
-
 // CREATE A RESERVATION
 router.post(
-    "/create",
-    auth,
-    CatchAsyncError(async (req, res, next) => {
-      try {
-        console.log("Données reçues :", req.body); 
-        const reservation = new Reservation(req.body);
-        reservation.user = req.user._id;
-        const response = await reservation.save();
-  
-        res.status(201).json({
-          success: true,
-          message: "Réservation créée avec succès ",
-          reservation: response,
-        });
-      } catch (error) {
-        next(new Errors("Erreur lors de la création de la réservation", 400));
-      }
-    })
-  );
-  
+  "/create",
+  auth,
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      const io = req.app.get("socketio");
+      console.log("Données reçues :", req.body);
+      const reservation = new Reservation(req.body);
+      reservation.user = req.user._id;
+      const response = await reservation.save();
+
+      // Emit event for reservation creation
+      io.emit("reservation:update", { type: "create", reservation: response });
+
+      res.status(201).json({
+        success: true,
+        message: "Réservation créée avec succès",
+        reservation: response,
+      });
+    } catch (error) {
+      next(new Errors("Erreur lors de la création de la réservation", 400));
+    }
+  })
+);
 
 // GET RESERVATIONS WITH SEARCH AND PAGINATION
 router.get(
@@ -57,10 +60,13 @@ router.get(
 // GET ALL RESERVATIONS
 router.get(
   "/all",
-  
+  auth,
   CatchAsyncError(async (req, res, next) => {
     try {
-      let reservations = await Reservation.find();
+      // Récupération de l'instance socket.io
+      const io = req.app.get("socketio");
+      let reservations = await Reservation.find().populate("user", "firstName lastName");
+      io.emit("reservation:update", { type: "fetchAll", reservations });
       res.status(200).json({ success: true, reservations });
     } catch (error) {
       next(new Errors("Erreur lors de la récupération des réservations", 400));
@@ -89,22 +95,14 @@ router.put(
     try {
       const reservation = await Reservation.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (!reservation) return next(new Errors("Réservation non trouvée", 404));
+
+      // Emit event for reservation update
+      const io = req.app.get("socketio");
+      io.emit("reservation:update", { type: "update", reservation });
+
       res.status(200).json({ success: true, message: "Modification effectuée", reservation });
     } catch (error) {
       next(new Errors("Erreur lors de la modification de la réservation", 400));
-    }
-  })
-);
-
-// DELETE MULTIPLE RESERVATIONS
-router.post(
-  "/more",
-  CatchAsyncError(async (req, res, next) => {
-    try {
-      const response = await Reservation.deleteMany({ _id: { $in: req.body.ids } });
-      res.status(200).json({ success: true, message: "Réservations supprimées avec succès", response });
-    } catch (error) {
-      next(new Errors("Erreur lors de la suppression des réservations", 400));
     }
   })
 );
@@ -117,9 +115,32 @@ router.delete(
     try {
       const reservation = await Reservation.findByIdAndDelete(req.params.id);
       if (!reservation) return next(new Errors("Réservation non trouvée", 404));
+
+      // Emit event for reservation deletion
+      const io = req.app.get("socketio");
+      io.emit("reservation:update", { type: "delete", id: req.params.id });
+
       res.status(200).json({ success: true, message: "Réservation supprimée", reservation });
     } catch (error) {
       next(new Errors("Erreur lors de la suppression de la réservation", 400));
+    }
+  })
+);
+
+// DELETE MULTIPLE RESERVATIONS
+router.post(
+  "/more",
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      const response = await Reservation.deleteMany({ _id: { $in: req.body.ids } });
+      
+      // Emit event for multiple deletions
+      const io = req.app.get("socketio");
+      io.emit("reservation:update", { type: "delete", ids: req.body.ids });
+
+      res.status(200).json({ success: true, message: "Réservations supprimées avec succès", response });
+    } catch (error) {
+      next(new Errors("Erreur lors de la suppression des réservations", 400));
     }
   })
 );
@@ -154,6 +175,11 @@ router.post(
             return await reservation.save();
           })
         );
+
+        // Emit event for import completion
+        const io = req.app.get("socketio");
+        io.emit("reservation:update", { type: "import", reservations });
+
         res.status(201).json({ success: true, message: "Réservations importées avec succès", reservations });
       });
     } catch (error) {
@@ -163,4 +189,3 @@ router.post(
 );
 
 module.exports = router;
-

@@ -1,0 +1,176 @@
+import React, { useEffect, useState } from "react";
+import { CSmartTable, CButton, CCollapse, CModal, CModalBody, CModalFooter, CModalHeader } from "@coreui/react-pro";
+import axios from "axios";
+import { CFormSwitch } from "@coreui/react-pro";
+
+const getBadge = (status) => {
+  switch (status) {
+    case "active":
+      return "success";
+    case "inactive":
+      return "warning";
+    case "banned":
+      return "danger";
+    default:
+      return "secondary";
+  }
+};
+
+function ClientSmartTable() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [details, setDetails] = useState([]);
+  const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get("http://localhost:5001/api/users/");
+      console.log("Utilisateurs récupérés :", data);
+      setUsers(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des utilisateurs :", error);
+    }
+    setLoading(false);
+  };
+
+  const deleteUser = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5001/api/users/${id}`);
+      setUsers(users.filter(user => user._id !== id));
+      setShowModal(false);
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'utilisateur :", error);
+    }
+  };
+
+  const toggleAdminRole = async (user) => {
+    try {
+      const updatedUser = { ...user, isAdmin: !user.isAdmin };
+
+      await axios.put(`http://localhost:5001/api/users/role/${user._id}`, {
+        isAdmin: updatedUser.isAdmin,
+      });
+
+      setUsers(users.map((u) => (u._id === user._id ? updatedUser : u)));
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du rôle :", error);
+    }
+  };
+
+  const toggleDetails = (id) => {
+    setDetails((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+
+
+  const columns = [
+    { key: "firstName", label: "Prénom" },
+    { key: "lastName", label: "Nom" },
+    { key: "email", label: "Email" },
+    { key: "phone", label: "Téléphone" },
+    {
+      key: "isAdmin",
+      label: "Admin",
+      _style: { width: "10%" },
+    },
+    { key: "show_details", label: "", filter: false, sorter: false },
+  ];
+
+  return (
+    <>
+      <CSmartTable
+        columns={columns}
+        items={users}
+        loading={loading}
+        pagination
+        columnFilter
+        columnSorter
+        cleaner
+        clickableRows
+        itemsPerPage={5}
+        onPageChange={(page) => setPage(page)}
+        scopedColumns={{
+
+          isAdmin: (item) => (
+            <td>
+              <CFormSwitch
+                checked={item.isAdmin}
+                onChange={() => toggleAdminRole(item)}
+                label=""
+              />
+
+            </td>
+          ),
+        show_details: (item) => (
+            <td className="py-2">
+            <CButton
+            color="primary"
+            variant="outline"
+            size="sm"
+            onClick={() => toggleDetails(item._id)}
+             >
+            {details.includes(item._id) ? "Cacher" : "Voir action"}
+             </CButton>
+             </td>
+        ),
+          details: (item) => (
+            <CCollapse visible={details.includes(item._id)}>
+            <div className="p-2">
+            <CButton size="sm" color="info" style={{ fontSize: "0.75rem" }} >
+                Modifier
+            </CButton>
+            <CButton
+                size="sm"
+                color="danger"
+                className="ms-1"
+                style={{ fontSize: "0.75rem" }}
+                onClick={() => {
+                setUserToDelete(item._id);
+                setShowModal(true);
+                }}
+                >
+                  Supprimer
+                </CButton>
+            </div>
+            </CCollapse>
+          ),
+        }}
+        noItemsLabel="Aucun client présent"
+        selectable
+        tableFilter
+        tableProps={{
+        className: 'add-this-custom-class',
+        responsive: true,
+        striped: true,
+        hover: true,
+        }}
+        tableBodyProps={{
+          className: 'align-middle',
+        }}
+      />
+
+      {/* Modal de confirmation */}
+      <CModal visible={showModal} onClose={() => setShowModal(false)} alignment="center">
+        <CModalHeader>Confirmation de suppression</CModalHeader>
+        <CModalBody>
+          Êtes-vous sûr de vouloir supprimer cet utilisateur ?
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setShowModal(false)}>Annuler</CButton>
+          <CButton color="danger" onClick={() => deleteUser(userToDelete)}>Supprimer</CButton>
+        </CModalFooter>
+      </CModal>
+    </>
+  );
+}
+
+export default ClientSmartTable;

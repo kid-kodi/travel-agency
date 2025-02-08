@@ -20,9 +20,10 @@ router.get("/config", (req, res) => {
 
 // Route pour créer un paiement
 router.post("/create-payment-intent",  async (req, res) => {
+ 
   try {
-     const { amount } = req.body; // Permettre de passer le montant dynamiquement
-    // const amount = 5000;
+    //  const { amount } = req.body; // Permettre de passer le montant dynamiquement
+     const amount = 5000;
     if (!amount) {
       return res.status(400).send({ error: { message: "Montant requis" } });
     }
@@ -32,7 +33,7 @@ router.post("/create-payment-intent",  async (req, res) => {
       amount, // Montant en centimes
       automatic_payment_methods: { enabled: true },
     });
-
+    console.log("Création d'un paiement emirate");
     res.send({
       clientSecret: paymentIntent.client_secret,
     });
@@ -40,5 +41,27 @@ router.post("/create-payment-intent",  async (req, res) => {
     res.status(400).send({ error: { message: e.message } });
   }
 });
+
+
+// Route pour récupérer les paiements
+router.get("/payments", async (req, res) => {
+  try {
+    const payments = await stripe.paymentIntents.list({ limit: 10 });
+
+    const formattedPayments = payments.data.map((payment) => ({
+      id: payment.id,
+      amount: payment.amount / 100, // Convertir les centimes en euros
+      currency: payment.currency.toUpperCase(),
+      status: payment.status,
+      payment_method: payment.charges.data[0]?.payment_method_details?.type || "N/A",
+      created: new Date(payment.created * 1000).toISOString(),
+    }));
+
+    res.json(formattedPayments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 module.exports = router;

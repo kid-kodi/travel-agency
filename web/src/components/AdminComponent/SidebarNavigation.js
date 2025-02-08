@@ -10,6 +10,8 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import DescriptionIcon from '@mui/icons-material/Description';
 import BookOnlineIcon from '@mui/icons-material/BookOnline';
 import LayersIcon from '@mui/icons-material/Layers';
+import HailIcon from '@mui/icons-material/Hail';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 
 // Définir la configuration de la navigation
 export const NAVIGATION = [
@@ -48,6 +50,11 @@ export const NAVIGATION = [
     icon: <PaymentIcon />,
   },
   {
+    segment: 'admin/client',
+    title: 'Nos Clients',
+    icon: <HailIcon />,
+  },
+  {
     segment: 'admin/promotion',
     title: 'Promotion',
     icon: <LocalOfferIcon />,
@@ -57,7 +64,12 @@ export const NAVIGATION = [
   },
   {
     kind: 'header',
-    title: 'Analytics',
+    title: 'Parametrage',
+  },
+  {
+    segment: 'admin/ville',
+    title: 'Villes',
+    icon: <GpsFixedIcon />,
   },
   {
     segment: 'reports',

@@ -1,31 +1,44 @@
 const express = require("express");
-const app = express();
+const http = require("http");
+const socketIo = require("socket.io");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cors = require("cors");
 const path = require("path");
-// const init = require("./init");
 
 const ErrorHandler = require("./middleware/ErrorHandler");
-//Load public routes
+
+// Routes
 const authRoutes = require("./routes/auth");
 const usersRoutes = require("./routes/users");
 const itemsRoutes = require("./routes/items");
 const uploadRoutes = require("./routes/upload");
-const reservationRoutes = require('./routes/reservation'); // Importation des routes de réservation
-const paymentRoutes = require("./routes/payment"); // Importation des routes de paiement
+const reservationRoutes = require("./routes/reservation");
+const paymentRoutes = require("./routes/payment");
+const vehiculeRoutes = require("./routes/vehicule");
+const chauffeurRoutes = require("./routes/chauffeur");
+const villeRoutes = require("./routes/ville");
+const trajetRoutes = require("./routes/trajet");
 
-
-//app configuration
 dotenv.config();
 
+const app = express();
+const server = http.createServer(app); 
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Connexion à MongoDB
 mongoose.connect(
   process.env.MONGODB_URL,
   { useNewUrlParser: true, useUnifiedTopology: true },
   () => {
-    console.log("Connected to MongoDB");
+    console.log("✅ Connected to MongoDB");
   }
 );
 
@@ -36,23 +49,45 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use("/", express.static(path.join(__dirname, "uploads")));
 
-//use middleware
+// Middleware
 app.use(express.json({ limit: "1000mb" }));
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
 
-// Public api
+// WebSocket - Gestion des connexions
+io.on("connection", (socket) => {
+  console.log("⚡ Nouvelle connexion WebSocket");
+
+  socket.on("disconnect", () => {
+    console.log("🔌 Client déconnecté");
+  });
+});
+
+// Fonction pour notifier un événement à tous les clients
+const sendNotification = (event, data) => {
+  io.emit(event, data);
+};
+
+// Utilisation des routes API
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/items", itemsRoutes);
 app.use("/api/uploads", uploadRoutes);
-app.use('/api/reservation', reservationRoutes); // Utilisation des routes de réservation
-app.use("/api/payment", paymentRoutes); 
+app.use("/api/reservation", reservationRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/vehicule", vehiculeRoutes);
+app.use("/api/chauffeur", chauffeurRoutes);
+app.use("/api/ville", villeRoutes);
+app.use("/api/trajet", trajetRoutes);
 
-// Errors handlers
+// Gestion des erreurs
 app.use(ErrorHandler);
-
-app.listen(process.env.PORT, () => {
-  console.log(`Express server started ${process.env.PORT}`);
+app.set("socketio", io);
+// Démarrage du serveur
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server started on port ${PORT}`);
 });
+
+module.exports = { app, server, io, sendNotification };

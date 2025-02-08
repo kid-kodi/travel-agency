@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { CAvatar, CBadge, CButton, CCollapse, CSmartTable } from "@coreui/react-pro";
 import axios from "axios";
-import 'bootstrap/dist/css/bootstrap.min.css'
-import '@coreui/coreui/dist/css/coreui.min.css'
+import io from "socket.io-client"; // Import socket.io-client
+
+const socket = io("http://localhost:5001"); // Set up socket connection with your backend
 
 const getBadge = (status) => {
   switch (status) {
@@ -54,14 +55,37 @@ export const ReservationSmartTable = () => {
   useEffect(() => {
     if (localStorage.getItem("token")) {
       fetchReservations(); // Charge les réservations si un token est présent
+  
+      const handleSocketUpdate = (data) => {
+        if (data.type === "create") {
+          setReservations((prevReservations) => [data.reservation, ...prevReservations]);
+        } else if (data.type === "update") {
+          setReservations((prevReservations) =>
+            prevReservations.map((reservation) =>
+              reservation._id === data.reservation._id ? data.reservation : reservation
+            )
+          );
+        } else if (data.type === "delete") {
+          setReservations((prevReservations) =>
+            prevReservations.filter((reservation) => reservation._id !== data.id)
+          );
+        }
+      };
+  
+      socket.on("reservation:update", handleSocketUpdate);
+  
+      return () => {
+        socket.off("reservation:update", handleSocketUpdate); // Nettoyage avec la fonction exacte
+      };
     }
-  }, [page, search]);
+  }, [page, search, socket]); // Si socket est une dépendance dynamique
+  
 
   const columns = [
     { key: "departureCity", label: "Départ" },
     { key: "arrivalCity", label: "Arrivée" },
     { key: "date", label: "Date" },
-    { key: "tarif", label: "Tarif (€)" },
+    { key: "tarif", label: "Tarif (XOF)" },
     { key: "horaire", label: "Horaire" },
     { key: "seatNumber", label: "Siège" },
     { key: "paymentStatus", label: " Paiement" },
@@ -76,13 +100,6 @@ export const ReservationSmartTable = () => {
 
   return (
     <>
-      {/* <input
-        type="text"
-        placeholder="Rechercher une ville..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{ width: "40%", padding: "5px", borderRadius: "5px" }}
-      /> */}
       <CSmartTable
         columns={columns}
         items={reservations}
@@ -91,7 +108,7 @@ export const ReservationSmartTable = () => {
         columnFilter
         columnSorter
         cleaner
-        footer
+        // footer
         clickableRows
         itemsPerPage={5}
         onPageChange={(page) => setPage(page)}
@@ -104,6 +121,9 @@ export const ReservationSmartTable = () => {
           console.table(items)
         }}
         scopedColumns={{
+          date: (item) => (
+            <td>{new Date(item.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}</td>
+          ),
           paymentStatus: (item) => (
             <td>
               <CBadge color={getBadge(item.paymentStatus)}>{item.paymentStatus}</CBadge>
@@ -123,20 +143,23 @@ export const ReservationSmartTable = () => {
           ),
           details: (item) => (
             <CCollapse visible={details.includes(item._id)}>
-              <div className="p-3">
-                <h4>{item.departureCity} → {item.arrivalCity}</h4>
-                <p className="text-body-secondary">Réservé le : {new Date(item.dateReservation).toLocaleDateString()}</p>
-                <CButton size="sm" color="info">
-                  Modifier
-                </CButton>
-                <CButton size="sm" color="danger" className="ms-1">
-                  Supprimer
-                </CButton>
-              </div>
-            </CCollapse>
+            <div className="p-2">
+              <h5 style={{ fontSize: "0.975rem" }}>{item.departureCity} → {item.arrivalCity}</h5>
+              <p className="text-body-secondary" style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
+                Réservé le : <strong>{new Date(item.dateReservation).toLocaleDateString()}</strong> par {item.user ? `${item.user.firstName} ${item.user.lastName}` : "Non disponible"}
+              </p>
+              <CButton size="sm" color="info" style={{ fontSize: "0.75rem" }}>
+                Modifier
+              </CButton>
+              <CButton size="sm" color="danger" className="ms-1" style={{ fontSize: "0.75rem" }}>
+                Supprimer
+              </CButton>
+            </div>
+          </CCollapse>
+
           ),
         }}
-
+        noItemsLabel="Donnée non disponible"  
         selectable
         sorterValue={{ column: 'status', state: 'asc' }}
         tableFilter
@@ -149,6 +172,7 @@ export const ReservationSmartTable = () => {
         tableBodyProps={{
           className: 'align-middle',
         }}
+       
       />
     </>
   );

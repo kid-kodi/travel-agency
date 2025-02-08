@@ -7,6 +7,9 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "antd/dist/antd.css";
 
+//a voire ************
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '@coreui/coreui/dist/css/coreui.min.css';
 
 import App from "./App";
 import FlashProvider from "./contexts/FlashProvider";

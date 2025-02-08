@@ -10,6 +10,7 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
     "bull": "^4.10.4",
     "convert-excel-to-json": "^1.7.0",
     "cors": "^2.8.5",
@@ -27,11 +28,11 @@
     "nodemailer": "^6.7.2",
     "nodemon": "^2.0.15",
     "redis": "^4.6.7",
+    "socket.io": "^4.8.1",
+    "stripe": "^8.191.0",
     "twilio": "^5.4.2",
     "uuid": "^8.3.2",
-    "validator": "^13.7.0",
-    "body-parser": "^1.19.0",
-    "stripe": "^8.191.0"
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "prettier": "^2.7.1"

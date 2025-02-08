@@ -78,7 +78,7 @@ router.get(
   CatchAsyncError(async (req, res, next) => {
     try {
       let users = await User.find().select(
-        "_id profilePicture firstName lastName email telephone createdAt"
+        "_id profilePicture firstName lastName email phone createdAt"
       );
       res.status(201).json(users);
     } catch (error) {
@@ -132,6 +132,31 @@ router.put(
     }
   })
 );
+
+// METTRE À JOUR LE RÔLE D'UN UTILISATEUR
+router.put(
+  "/role/:userId",
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      const { isAdmin } = req.body;
+
+      const user = await User.findByIdAndUpdate(
+        req.params.userId,
+        { isAdmin },
+        { new: true }
+      );
+
+      res.status(200).json({
+        success: true,
+        message: `Le rôle de ${user.firstName} a été mis à jour`,
+        user,
+      });
+    } catch (error) {
+      next(new Errors(error.message, 400));
+    }
+  })
+);
+
 
 // DELETE A USER
 // URL : http://localhost:5000/users/:userId

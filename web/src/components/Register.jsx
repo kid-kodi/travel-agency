@@ -138,7 +138,7 @@ const Register = () => {
       setAlert({ open: true, message: "Votre compte a été activé avec succès !", severity: "success" });
   
       setIsVerificationOpen(false); // Ferme la boîte de dialogue après la vérification
-      navigate("/"); // Redirige l'utilisateur après la vérification
+      navigate("/login"); // Redirige l'utilisateur après la vérification
     } catch (error) {
       setOtpError("Une erreur est survenue lors de la vérification du code OTP.");
       setAlert({ open: true, message: "Une erreur est survenue lors de la vérification du code OTP.", severity: "error" });
