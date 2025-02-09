@@ -110,7 +110,7 @@ function MethodePaiement({ onSelectMethod }) {
           </Card>
         ))}
       </Box>
-
+      {/* Condition Admin  a jouter */}
       <Button
         variant="contained"
         startIcon={<ArrowBackIcon />}
@@ -128,6 +128,8 @@ function MethodePaiement({ onSelectMethod }) {
           },
         }}
       >
+
+
         Retour
       </Button>
     </Card>

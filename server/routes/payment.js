@@ -46,7 +46,7 @@ router.post("/create-payment-intent",  async (req, res) => {
 // Route pour récupérer les paiements
 router.get("/payments", async (req, res) => {
   try {
-    const payments = await stripe.paymentIntents.list({ limit: 10 });
+    const payments = await stripe.paymentIntents.list({ limit: 100 });
 
     const formattedPayments = payments.data.map((payment) => ({
       id: payment.id,
