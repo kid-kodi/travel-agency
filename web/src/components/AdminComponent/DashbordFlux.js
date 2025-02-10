@@ -38,6 +38,7 @@ export const DashbordFlux = () => {
   const [vehicules, setVehicules] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [conducteurs, setConducteurs] = useState([]);
+  const [displayedAmount, setDisplayedAmount] = useState(0);
 
   const navigate = useNavigate();
 
@@ -70,7 +71,7 @@ export const DashbordFlux = () => {
   const fetchClients = async () => {
     try {
       const { data } = await axios.get("http://localhost:5001/api/users/");
-      setTotalClients(data.length);
+      setTotalClients(data.users.length);
     } catch (error) {
       console.error("Erreur lors de la récupération des utilisateurs :", error);
     }
@@ -153,6 +154,20 @@ export const DashbordFlux = () => {
     fetchTrajets();
     fetchConducteurs();
     fetchVehicules();
+
+    //compte rebourse
+    let start = 0;
+    const duration = 2000; // Durée totale de l'animation en millisecondes (2 secondes)
+    const increment = totalAmount / (duration / 10); // Calcul de l'incrément
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= totalAmount) {
+        setDisplayedAmount(totalAmount.toFixed(2));
+        clearInterval(timer);
+      } else {
+        setDisplayedAmount(start.toFixed(2));
+      }
+    }, 10); // Mise à jour toutes les 10ms
     
     socket.on("vehicule:update", (data) => {
       if (data.type === "create") {
@@ -205,8 +220,9 @@ export const DashbordFlux = () => {
     return () => {
       socket.off("vehicule:update");
       socket.off("chauffeur:update");
+      clearInterval(timer);
     };
-  }, [navigate]);
+  }, [navigate,totalAmount]);
 
   return (
     <CRow>
@@ -217,7 +233,8 @@ export const DashbordFlux = () => {
         style={{ backgroundColor: 'rgb(28, 83, 43)', color: 'white' }}
         value={
           <>
-            ${totalAmount.toFixed(2)}{' '}
+            {/* ${totalAmount.toFixed(2)}{' '} */}
+            ${displayedAmount}{' '}
             <span className="fs-6 fw-normal">
               ({(totalAmount / totalCount).toFixed(2)} per payment)
             </span>

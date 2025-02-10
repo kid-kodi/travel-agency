@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { CSmartTable, CButton, CCollapse, CModal, CModalBody, CModalFooter, CModalHeader } from "@coreui/react-pro";
 import axios from "axios";
 import { CFormSwitch } from "@coreui/react-pro";
+import { CPagination, CPaginationItem } from "@coreui/react";
 
 const getBadge = (status) => {
   switch (status) {
@@ -21,24 +22,37 @@ function ClientSmartTable() {
   const [loading, setLoading] = useState(true);
   const [details, setDetails] = useState([]);
   const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const limit = 5;
   const [showModal, setShowModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(page);
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page = 1) => {
     setLoading(true);
     try {
-      const { data } = await axios.get("http://localhost:5001/api/users/");
+      const { data } = await axios.get(`http://localhost:5001/api/users/?page=${page}&limit=5`);
       console.log("Utilisateurs récupérés :", data);
-      setUsers(data);
+      setUsers(data.users || []);
+      setPages(data.totalPages || 1);
     } catch (error) {
       console.error("Erreur lors de la récupération des utilisateurs :", error);
     }
     setLoading(false);
   };
+
+
+  //pagination
+ const handlePageChange = (newPage) => {
+  if (newPage >= 1 && newPage <= pages) {
+    setPage(newPage);
+  }
+};
+  
 
   const deleteUser = async (id) => {
     try {
@@ -125,6 +139,7 @@ function ClientSmartTable() {
           details: (item) => (
             <CCollapse visible={details.includes(item._id)}>
             <div className="p-2">
+              {item.createdAt}
             <CButton size="sm" color="info" style={{ fontSize: "0.75rem" }} >
                 Modifier
             </CButton>
@@ -169,6 +184,37 @@ function ClientSmartTable() {
           <CButton color="danger" onClick={() => deleteUser(userToDelete)}>Supprimer</CButton>
         </CModalFooter>
       </CModal>
+
+        {/* Pagination personnalisée avec CoreUI */}
+          <div className="d-flex justify-content-center my-3">
+            <CPagination aria-label="Page navigation example">
+              <CPaginationItem
+                aria-label="Previous"
+                disabled={page === 1}
+                onClick={() => handlePageChange(page - 1)}
+              >
+                <span aria-hidden="true">&laquo;</span>
+              </CPaginationItem>
+      
+              {[...Array(pages)].map((_, index) => (
+                <CPaginationItem
+                  key={index + 1}
+                  active={page === index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                >
+                  {index + 1}
+                </CPaginationItem>
+              ))}
+      
+              <CPaginationItem
+                aria-label="Next"
+                disabled={page === pages}
+                onClick={() => handlePageChange(page + 1)}
+              >
+                <span aria-hidden="true">&raquo;</span>
+              </CPaginationItem>
+            </CPagination>
+          </div>
     </>
   );
 }

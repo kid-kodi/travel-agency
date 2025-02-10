@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CAvatar, CBadge, CButton, CCollapse, CSmartTable } from "@coreui/react-pro";
+import { CPagination, CPaginationItem } from "@coreui/react";
 import axios from "axios";
 import io from "socket.io-client"; // Import socket.io-client
 
@@ -25,36 +26,41 @@ export const ReservationSmartTable = () => {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [search, setSearch] = useState("");
+  const limit = 5;
 
   // Fetch reservations with Bearer token
-  const fetchReservations = async () => {
+  const fetchReservations = async (page = 1) => {
     setLoading(true);
-
-    // Récupérer le token d'authentification depuis le localStorage
     const token = localStorage.getItem("token");
-   
+  
     try {
-      // Effectuer la requête GET avec le token dans l'en-tête Authorization
-      const { data } = await axios.get("http://localhost:5001/api/reservation/all", {
+      const { data } = await axios.get(`http://localhost:5001/api/reservation/all?page=${page}&limit=5`, {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Ajout du token Bearer
+          Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Données token :", token);
-      console.log("Données reçues :", data);
+  
       setReservations(data.reservations || []);
-      setPages(data.pages || 1);
+      setPages(data.totalPages || 1);
     } catch (error) {
       console.error("Erreur lors de la récupération des réservations :", error);
     }
-
+  
     setLoading(false);
   };
+  
+  //pagination
+ const handlePageChange = (newPage) => {
+  if (newPage >= 1 && newPage <= pages) {
+    setPage(newPage);
+  }
+};
+  
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      fetchReservations(); // Charge les réservations si un token est présent
+      fetchReservations(page); // Charge les réservations si un token est présent
   
       const handleSocketUpdate = (data) => {
         if (data.type === "create") {
@@ -108,21 +114,26 @@ export const ReservationSmartTable = () => {
         columnFilter
         columnSorter
         cleaner
-        // footer
-        clickableRows
         itemsPerPage={5}
-        onPageChange={(page) => setPage(page)}
+        activePage={page}
+        onPageChange={(newPage) => handlePageChange(newPage)}
         onFilteredItemsChange={(items) => {
-          console.log('onFilteredItemsChange')
-          console.table(items)
+          console.log("onFilteredItemsChange");
+          console.table(items);
         }}
         onSelectedItemsChange={(items) => {
-          console.log('onSelectedItemsChange')
-          console.table(items)
+          console.log("onSelectedItemsChange");
+          console.table(items);
         }}
         scopedColumns={{
           date: (item) => (
-            <td>{new Date(item.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}</td>
+            <td>
+              {new Date(item.date).toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}
+            </td>
           ),
           paymentStatus: (item) => (
             <td>
@@ -143,37 +154,72 @@ export const ReservationSmartTable = () => {
           ),
           details: (item) => (
             <CCollapse visible={details.includes(item._id)}>
-            <div className="p-2">
-              <h5 style={{ fontSize: "0.975rem" }}>{item.departureCity} → {item.arrivalCity}</h5>
-              <p className="text-body-secondary" style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
-                Réservé le : <strong>{new Date(item.dateReservation).toLocaleDateString()}</strong> par {item.user ? `${item.user.firstName} ${item.user.lastName}` : "Non disponible"}
-              </p>
-              <CButton size="sm" color="info" style={{ fontSize: "0.75rem" }}>
-                Modifier
-              </CButton>
-              <CButton size="sm" color="danger" className="ms-1" style={{ fontSize: "0.75rem" }}>
-                Supprimer
-              </CButton>
-            </div>
-          </CCollapse>
-
+              <div className="p-2">
+                <h5 style={{ fontSize: "0.975rem" }}>
+                  {item.departureCity} → {item.arrivalCity}
+                </h5>
+                <p
+                  className="text-body-secondary"
+                  style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}
+                >
+                  Réservé le : <strong>{new Date(item.dateReservation).toLocaleDateString()}</strong>{" "}
+                  par {item.user ? `${item.user.firstName} ${item.user.lastName}` : "Non disponible"}
+                </p>
+                <CButton size="sm" color="info" style={{ fontSize: "0.75rem" }}>
+                  Modifier
+                </CButton>
+                <CButton size="sm" color="danger" className="ms-1" style={{ fontSize: "0.75rem" }}>
+                  Supprimer
+                </CButton>
+              </div>
+            </CCollapse>
           ),
         }}
-        noItemsLabel="Donnée non disponible"  
+        noItemsLabel="Donnée non disponible"
         selectable
-        sorterValue={{ column: 'status', state: 'asc' }}
+        sorterValue={{ column: "status", state: "asc" }}
         tableFilter
         tableProps={{
-          className: 'add-this-custom-class',
+          className: "add-this-custom-class",
           responsive: true,
           striped: true,
           hover: true,
         }}
         tableBodyProps={{
-          className: 'align-middle',
+          className: "align-middle",
         }}
-       
       />
+  
+      {/* Pagination personnalisée avec CoreUI */}
+        <div className="d-flex justify-content-center my-3">
+          <CPagination aria-label="Page navigation example">
+            <CPaginationItem
+              aria-label="Previous"
+              disabled={page === 1}
+              onClick={() => handlePageChange(page - 1)}
+            >
+              <span aria-hidden="true">&laquo;</span>
+            </CPaginationItem>
+
+            {[...Array(pages)].map((_, index) => (
+              <CPaginationItem
+                key={index + 1}
+                active={page === index + 1}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </CPaginationItem>
+            ))}
+
+            <CPaginationItem
+              aria-label="Next"
+              disabled={page === pages}
+              onClick={() => handlePageChange(page + 1)}
+            >
+              <span aria-hidden="true">&raquo;</span>
+            </CPaginationItem>
+          </CPagination>
+        </div>
     </>
-  );
+  );  
 };

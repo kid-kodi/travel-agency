@@ -3,6 +3,7 @@ import { CAvatar, CBadge, CButton, CCollapse, CSmartTable, CModal, CModalBody, C
 import axios from "axios";
 import Typography from '@mui/material/Typography'; // Import Typography
 import io from "socket.io-client"; // Import socket.io-client
+import { CPagination, CPaginationItem } from "@coreui/react";
 
 const socket = io("http://localhost:5001"); // Set up socket connection with your backend
 
@@ -26,12 +27,13 @@ export const VehiculeSmartTable = ({ onEdit, refreshTable }) => {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [search, setSearch] = useState("");
+  const limit = 5;
   const [showModal, setShowModal] = useState(false);
   const [vehiculeToDelete, setVehiculeToDelete] = useState(null);
   const [successMessage, setSuccessMessage] = useState(""); // Pour afficher le message de succès
 
   // Fetch vehicles with Bearer token
-  const fetchVehicules = async () => {
+  const fetchVehicules = async (page = 1) => {
     setLoading(true);
 
     // Récupérer le token d'authentification depuis le localStorage
@@ -39,7 +41,7 @@ export const VehiculeSmartTable = ({ onEdit, refreshTable }) => {
 
     try {
       // Effectuer la requête GET avec le token dans l'en-tête Authorization
-      const { data } = await axios.get("http://localhost:5001/api/vehicule/all", {
+      const { data } = await axios.get(`http://localhost:5001/api/vehicule/all?page=${page}&limit=5`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`, // Ajout du token Bearer
@@ -53,6 +55,15 @@ export const VehiculeSmartTable = ({ onEdit, refreshTable }) => {
 
     setLoading(false);
   };
+
+  //pagination
+ // Fonction de changement de page
+ const handlePageChange = (newPage) => {
+  if (newPage >= 1 && newPage <= pages) {
+    setPage(newPage);
+  }
+};
+  
 
   const deleteVehicule = async (id) => {
     try {
@@ -238,6 +249,37 @@ export const VehiculeSmartTable = ({ onEdit, refreshTable }) => {
           <CToastBody>{successMessage}</CToastBody>
         </CToast>
       )}
+
+      {/* Pagination personnalisée avec CoreUI */}
+       <div className="d-flex justify-content-center my-3">
+                <CPagination aria-label="Page navigation example">
+                  <CPaginationItem
+                    aria-label="Previous"
+                    disabled={page === 1}
+                    onClick={() => handlePageChange(page - 1)}
+                  >
+                    <span aria-hidden="true">&laquo;</span>
+                  </CPaginationItem>
+      
+                  {[...Array(pages)].map((_, index) => (
+                    <CPaginationItem
+                      key={index + 1}
+                      active={page === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </CPaginationItem>
+                  ))}
+      
+                  <CPaginationItem
+                    aria-label="Next"
+                    disabled={page === pages}
+                    onClick={() => handlePageChange(page + 1)}
+                  >
+                    <span aria-hidden="true">&raquo;</span>
+                  </CPaginationItem>
+                </CPagination>
+        </div>
     </>
   );
 };

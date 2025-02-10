@@ -63,16 +63,41 @@ router.get(
   auth,
   CatchAsyncError(async (req, res, next) => {
     try {
-      // Récupération de l'instance socket.io
       const io = req.app.get("socketio");
-      let reservations = await Reservation.find().populate("user", "firstName lastName");
+
+      // Récupérer les paramètres de pagination
+      let page = parseInt(req.query.page) ;
+      let limit = parseInt(req.query.limit) ;
+      console.log("Page:", page, "Limit:", limit);
+      let skip = (page - 1) * limit;
+
+      // Récupérer le total des réservations
+      let totalReservations = await Reservation.countDocuments();
+
+      // Récupérer les réservations avec pagination
+      let reservations = await Reservation.find()
+        .populate("user", "firstName lastName")
+        .skip(skip)
+        .limit(limit);
+        console.log("Nombre de réservations retournées:", reservations.length);
+
       io.emit("reservation:update", { type: "fetchAll", reservations });
-      res.status(200).json({ success: true, reservations });
+
+      res.status(200).json({
+        success: true,
+        reservations,
+        currentPage: page,
+        totalPages: Math.ceil(totalReservations / limit),
+        totalReservations
+      });
+      console.log("Total Reservations:", totalReservations, "Total Pages:", Math.ceil(totalReservations / limit));
+
     } catch (error) {
       next(new Errors("Erreur lors de la récupération des réservations", 400));
     }
   })
 );
+
 
 // GET A SINGLE RESERVATION
 router.get(

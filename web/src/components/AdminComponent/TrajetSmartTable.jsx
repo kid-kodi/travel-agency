@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { CAvatar, CBadge, CButton, CCollapse, CSmartTable, CModal, CModalBody, CModalFooter, CModalHeader, CToast, CToastBody, CToastHeader } from "@coreui/react-pro";
 import axios from "axios";
 import Typography from '@mui/material/Typography'; // Import Typography
-
+import { CPagination, CPaginationItem } from "@coreui/react";
 import io from "socket.io-client"; // Import socket.io-client
 const socket = io("http://localhost:5001"); // Set up socket connection with your backend
 
@@ -23,19 +23,21 @@ const getBadge = (status) => {
 export const TrajetSmartTable = ({onEdit, refreshTable }) => {
   const [trajets, setTrajets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+ const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const limit = 5;
   const [trajetToDelete, setTarjetToDelete] = useState(null);
   const [successMessage, setSuccessMessage] = useState(""); // Pour afficher le message de succès
   const [showModal, setShowModal] = useState(false);
   const [details, setDetails] = useState([]);
   // Fetch trips from backend
-  const fetchTrajets = async () => {
+  const fetchTrajets = async (age = 1) => {
     setLoading(true);
 
     const token = localStorage.getItem("token");
     try {
-      const { data } = await axios.get("http://localhost:5001/api/trajet/all", {
+      const { data } = await axios.get(`http://localhost:5001/api/trajet/all?page=${page}&limit=5`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -50,6 +52,13 @@ export const TrajetSmartTable = ({onEdit, refreshTable }) => {
     setLoading(false);
   };
 
+
+//pagination
+ const handlePageChange = (newPage) => {
+  if (newPage >= 1 && newPage <= pages) {
+    setPage(newPage);
+  }
+};
 
   const deleteTrajet = async (id) => {
     try {
@@ -81,7 +90,7 @@ export const TrajetSmartTable = ({onEdit, refreshTable }) => {
   useEffect(() => {
     // Vérification du token et appel de fetchTrajets
     if (localStorage.getItem("token")) {
-      fetchTrajets();
+      fetchTrajets(page);
     }
   
     // Gestion des événements Socket
@@ -264,6 +273,37 @@ export const TrajetSmartTable = ({onEdit, refreshTable }) => {
           <CToastBody>{successMessage}</CToastBody>
         </CToast>
       )}
+
+           {/* Pagination personnalisée avec CoreUI */}
+              <div className="d-flex justify-content-center my-3">
+                <CPagination aria-label="Page navigation example">
+                  <CPaginationItem
+                    aria-label="Previous"
+                    disabled={page === 1}
+                    onClick={() => handlePageChange(page - 1)}
+                  >
+                    <span aria-hidden="true">&laquo;</span>
+                  </CPaginationItem>
+      
+                  {[...Array(pages)].map((_, index) => (
+                    <CPaginationItem
+                      key={index + 1}
+                      active={page === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </CPaginationItem>
+                  ))}
+      
+                  <CPaginationItem
+                    aria-label="Next"
+                    disabled={page === pages}
+                    onClick={() => handlePageChange(page + 1)}
+                  >
+                    <span aria-hidden="true">&raquo;</span>
+                  </CPaginationItem>
+                </CPagination>
+              </div>
       </>
   );
 };

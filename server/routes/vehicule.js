@@ -39,19 +39,36 @@ router.post(
 
 
 
-// GET ALL VEHICLES
+// GET ALL VEHICLES avec pagination
 router.get(
   "/all",
   auth,
   CatchAsyncError(async (req, res, next) => {
     try {
-      let vehicules = await Vehicule.find().populate("chauffeur_id", "firstName lastName");
-      res.status(200).json({ success: true, vehicules });
+      const io = req.app.get("socketio");
+      let page = parseInt(req.query.page) ;
+      let limit = parseInt(req.query.limit) ;
+      let skip = (page - 1) * limit;
+      
+      let totalVehicules = await Vehicule.countDocuments();
+      let vehicules = await Vehicule.find()
+        .populate("chauffeur_id", "firstName lastName")
+        .skip(skip)
+        .limit(limit);
+      
+      res.status(200).json({
+        success: true,
+        vehicules,
+        currentPage: page,
+        totalPages: Math.ceil(totalVehicules / limit),
+        totalVehicules
+      });
     } catch (error) {
       next(new Errors("Erreur lors de la récupération des véhicules", 400));
     }
   })
 );
+
 
 // GET A SINGLE VEHICLE
 router.get(

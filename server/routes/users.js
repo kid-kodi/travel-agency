@@ -77,10 +77,23 @@ router.get(
   "/",
   CatchAsyncError(async (req, res, next) => {
     try {
-      let users = await User.find().select(
-        "_id profilePicture firstName lastName email phone createdAt"
-      );
-      res.status(201).json(users);
+      let page = parseInt(req.query.page) ;
+      let limit = parseInt(req.query.limit) ;
+      let skip = (page - 1) * limit;
+      
+      let totalUsers = await User.countDocuments();
+      let users = await User.find()
+        .select("_id profilePicture firstName lastName email phone createdAt")
+        .skip(skip)
+        .limit(limit);
+      
+      res.status(201).json({
+        success: true,
+        users,
+        currentPage: page,
+        totalPages: Math.ceil(totalUsers / limit),
+        totalUsers
+      });
     } catch (error) {
       next(new Errors(error.message, 400));
     }

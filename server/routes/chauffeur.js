@@ -39,14 +39,28 @@ router.post(
   })
 );
 
-// GET ALL Chauffeurs
+// GET ALL CHAUFFEURS avec pagination
 router.get(
   "/all",
-  
   CatchAsyncError(async (req, res, next) => {
     try {
-      let chauffeurs = await Chauffeur.find().populate("user_id", "firstName lastName");
-      res.status(200).json({ success: true, chauffeurs });
+      let page = parseInt(req.query.page);
+      let limit = parseInt(req.query.limit);
+      let skip = (page - 1) * limit;
+      
+      let totalChauffeurs = await Chauffeur.countDocuments();
+      let chauffeurs = await Chauffeur.find()
+        .populate("user_id", "firstName lastName")
+        .skip(skip)
+        .limit(limit);
+      
+      res.status(200).json({
+        success: true,
+        chauffeurs,
+        currentPage: page,
+        totalPages: Math.ceil(totalChauffeurs / limit),
+        totalChauffeurs
+      });
     } catch (error) {
       next(new Errors("Erreur lors de la récupération des chauffeurs", 400));
     }

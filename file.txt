@@ -95,3 +95,13 @@ Suivis et gestion des abonnents mensuelle
 
 
 Statistique et Rapport
+
+
+
+Reste a faire   
+
+-Paginations(en cours ....)
+-Gerer les permission
+-Revoir la reservation(charger le trajet dans le front client , revoire le workflow )
+-Revoir le formulaire du chaffeur sur la partie CIN Passport
+-Revoire le probleme de dependance entre Client et Admin parte

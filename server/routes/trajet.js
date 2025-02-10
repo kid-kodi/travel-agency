@@ -95,16 +95,32 @@ router.get(
   })
 );
 
-// GET ALL TRIPS
+// GET ALL TRIPS avec pagination
 router.get(
   "/all",
   auth,
   CatchAsyncError(async (req, res, next) => {
     try {
-      const trajets = await Trajet.find().populate("vehicule_id").populate("chauffeur_id");
-      const io = req.app.get("socketio"); // Assurez-vous que socketio est bien configuré
+      const io = req.app.get("socketio");
+      let page = parseInt(req.query.page) || 1;
+      let limit = parseInt(req.query.limit) || 5;
+      let skip = (page - 1) * limit;
+      
+      let totalTrajets = await Trajet.countDocuments();
+      let trajets = await Trajet.find()
+        .populate("vehicule_id")
+        .populate("chauffeur_id")
+        .skip(skip)
+        .limit(limit);
+      
       io.emit("trajets:all", { trajets });
-      res.status(200).json({ success: true, trajets });
+      res.status(200).json({
+        success: true,
+        trajets,
+        currentPage: page,
+        totalPages: Math.ceil(totalTrajets / limit),
+        totalTrajets
+      });
     } catch (error) {
       next(new Errors("Erreur lors de la récupération des trajets", 400));
     }
