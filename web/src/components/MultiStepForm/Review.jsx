@@ -23,15 +23,52 @@ const Review = ({ successMessage, setSuccessMessage }) => {
 
 
      // Stocker toutes les informations nécessaires
-     const reservationData = {
+     const reservationDatas = {
       token, // Stocker le token
       details, // Stocker les détails de la réservation (horaire, numéro de siège, etc.)
       address, // Stocker l'adresse du trajet (ville de départ, d'arrivée, tarif, etc.)
       formattedDate, // Ajouter la date formatée
     };
 
+    const reservationData = {
+      departureCity: address.departureCity,
+      arrivalCity: address.arrivalCity,
+      date: address.date,
+      tarif: address.tarif,
+      horaire: details.horaire,
+      seatNumber: details.seatNumber,
+      user: localStorage.getItem("userId"),
+      paymentStatus: "incomplete", // Création avec le statut "incomplete"
+    };
+    try {
+    const response = await fetch("http://localhost:5001/api/reservation/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(reservationData),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      console.log("Réservation créée avec succès :", data);
+
+      // Stocker l'ID de la réservation et les détails dans localStorage
+      localStorage.setItem("reservationData", JSON.stringify({ ...reservationData, id: data.id }));
+      localStorage.setItem("reservationId", data.reservation._id);
+      // Afficher les méthodes de paiement
+      setShowPaymentMethods(true);
+    } else {
+      throw new Error(data.message || "Une erreur est survenue lors de la création de la réservation.");
+    }
+  } catch (error) {
+    console.error("Erreur lors de la création de la réservation :", error);
+  }
+
+
     // Sauvegarde dans localStorage
-    localStorage.setItem("reservationData", JSON.stringify(reservationData));
+    localStorage.setItem("reservationDatas", JSON.stringify(reservationDatas));
     setLoading(false);
     setShowPaymentMethods(true);
 

@@ -95,7 +95,7 @@ router.get(
   })
 );
 
-// GET ALL TRIPS avec pagination
+// GET ALL TRIPS With pagination
 router.get(
   "/all",
   auth,
@@ -127,6 +127,20 @@ router.get(
   })
 );
 
+//GET ALL TRIPS WITHOUT PAGINATION
+router.get(
+  "/all-no-pagination",
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      const trajets = await Trajet.find().populate("vehicule_id").populate("chauffeur_id");
+      res.status(200).json({ success: true, trajets });
+    } catch (error) {
+      next(new Errors("Erreur lors de la récupération des trajets", 400));
+    }
+  })
+);
+
+
 // GET A SINGLE TRIP
 router.get(
   "/:id",
@@ -141,6 +155,9 @@ router.get(
     }
   })
 );
+
+
+
 
 // UPDATE A TRIP
 router.put("/:id", auth, CatchAsyncError(async (req, res, next) => {

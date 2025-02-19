@@ -5,7 +5,7 @@ function Completion() {
   const [reservation, setReservation] = useState(null);
 
   useEffect(() => {
-    const storedData = localStorage.getItem("reservationData");
+    const storedData = localStorage.getItem("reservationDatas");
     if (storedData) {
       setReservation(JSON.parse(storedData));
     }
