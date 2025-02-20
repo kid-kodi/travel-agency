@@ -100,9 +100,14 @@ Statistique et Rapport
 
 Reste a faire   
 
-place
+place done
 -Paginations(en cours ....)
 -Gerer les permission
--Revoir la reservation(charger le trajet dans le front client , revoire le workflow )
+-Revoir la reservation(charger le trajet dans le front client , revoire le workflow ) done 
 -Revoir le formulaire du chaffeur sur la partie CIN Passport
 -Revoire le probleme de dependance entre Client et Admin parte
+-Espèces(status) done
+-Depart actuelle et a venire
+-Caburant Manage    
+-En reparation
+-Montant devise  done 

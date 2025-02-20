@@ -10,7 +10,7 @@ const Paiement = () => {
 
   const cardData = [
     { title: "Nombre total de paiements", value: totalCount },
-    { title: "Montant total réussi", value: `${totalAmount.toFixed(2)} €` },
+    { title: "Montant total ", value: `${totalAmount.toFixed(2)} Frs CFA` },
     { title: "Nombre total échoués", value: failedCount },
   ];
 

@@ -56,7 +56,7 @@ const PaiementSmartTable = ({ setTotalAmount,setTotalCount,setFailedCount }) => 
 
   const columns = [
     { key: "id", label: "ID Paiement" },
-    { key: "amount", label: "Montant (€)" },
+    { key: "amount", label: "Montant (Fr CFA)" },
     { key: "status", label: "Statut" },
     { key: "payment_method", label: "Méthode de paiement" },
     { key: "created", label: "Date de paiement" },

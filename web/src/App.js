@@ -21,6 +21,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import MethodePaiement from "./components/MethodePaiement";
 import Payment from "./components/Payement/Payement";
 import Completion from "./components/Payement/Completion";
+import EspeceForm from "components/Payement/EspeceForm";
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/Paiement" element={<MethodePaiement/>} />
             <Route path="/Stripe" element={<Payment />} />
+            <Route path="/Espece" element={<EspeceForm />} />
             <Route path="/completion" element={<Completion />} />
           </Route>
 

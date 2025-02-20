@@ -23,9 +23,9 @@ router.post(
       // Emit event for reservation creation
       io.emit("reservation:update", { type: "create", reservation: response });
 
-      res.status(201).json({
+      res.status(201).json({ 
         success: true,
-        message: "Réservation créée avec succès",
+        message: "Réservation créée avec succes , Veuillez rocedez au paiement",
         reservation: response,
       });
     } catch (error) {
@@ -33,6 +33,29 @@ router.post(
     }
   })
 );
+
+
+// 📌 Obtenir les sièges déjà réservés pour un trajet et une date donnée
+router.get("/seatReservation", async (req, res) => {
+  try {
+    const { departureCity, arrivalCity, date } = req.query;
+
+    if (!departureCity || !arrivalCity || !date) {
+      return res.status(400).json({ success: false, message: "Tous les paramètres sont requis (departureCity, arrivalCity, date)." });
+    }
+
+    const reservations = await Reservation.find({ departureCity, arrivalCity, date }, "seatNumber").lean();
+
+    const reservedSeats = reservations.map(reservation => reservation.seatNumber);
+
+    res.json({ success: true, reservations: reservedSeats });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Erreur lors de la récupération des réservations", error: error.message });
+  }
+});
+
+
+
 
 // GET RESERVATIONS WITH SEARCH AND PAGINATION
 router.get(
@@ -125,7 +148,7 @@ router.put(
       const io = req.app.get("socketio");
       io.emit("reservation:update", { type: "update", reservation });
 
-      res.status(200).json({ success: true, message: "Modification effectuée", reservation });
+      res.status(200).json({ success: true, message: "Paiement effectuer avec success", reservation });
     } catch (error) {
       next(new Errors("Erreur lors de la modification de la réservation", 400));
     }

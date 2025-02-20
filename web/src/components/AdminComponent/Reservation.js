@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Import pour la redirection
 import { Box, Typography } from '@mui/material';
 import { ReservationSmartTable } from './ReservationSmartTable';
-import DatePicker from "react-datepicker";
 import { CListGroup, CListGroupItem } from '@coreui/react';
 import { CDatePicker } from '@coreui/react-pro'
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -12,6 +11,10 @@ import PaidIcon from '@mui/icons-material/Paid';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
+import AirlineSeatLegroomReducedIcon from '@mui/icons-material/AirlineSeatLegroomReduced';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css"; // Import du style de react-datepicker
+
 import { 
   CButton, 
   CModal, 
@@ -35,7 +38,8 @@ const Reservation = () => {
   const [departureCities, setDepartureCities] = useState([]);
   const [arrivalCities, setArrivalCities] = useState([]);
   const [seatNumbers, setSeatNumbers] = useState([]);
-
+  const [reservedSeats, setReservedSeats] = useState([]);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
@@ -77,20 +81,24 @@ const Reservation = () => {
           setSelectedTrajet(trajet);
           newData.tarif = trajet.prix;
           newData.horaire = `${trajet.horaire_depart} - ${trajet.horaire_arrivee}`;
-  
-          // Mettre à jour les numéros de sièges
+        
+          // Calcul de la capacité totale
           const capacite = trajet.vehicule_id?.capacite || 0;
-          setSeatNumbers(Array.from({ length: capacite }, (_, i) => i + 1));
-        }
+        
+           // Générer tous les sièges possibles
+          const allSeats = Array.from({ length: capacite }, (_, i) => i + 1);
+
+          // Filtrer les sièges disponibles
+          const availableSeats = allSeats.filter(seat => !reservedSeats.includes(seat.toString()));
+
+          setSeatNumbers(availableSeats);
+        }        
       }
   
       return newData;
     });
   };
   
-  
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -121,20 +129,24 @@ const Reservation = () => {
       });
   
       if (response.data.success) {
-        alert("Réservation effectuée avec succès !");
-        setVisible(false); // Fermer la modal après succès
-        // Sauvegarder la réservation dans le localStorage
+        // alert("Réservation effectuée avec succès !");
+        setSuccessMessage(response.data.message);
+      
          // Stocker l'ID de la réservation dans le localStorage
         console.log("ID de la réservation stocké :", response.data.reservation._id);
         localStorage.setItem("reservationId", response.data.reservation._id);
         // Rediriger vers la page de paiement
-        navigate("/Paiement");
+        setTimeout(() => {
+          setVisible(false); // Fermer la modal après succès
+          navigate("/Paiement"); // Redirige après 30 secondes
+        }, 1000);
+        
       } else {
         alert("Échec de la réservation, veuillez réessayer.");
       }
     } catch (error) {
       console.error("Erreur lors de la réservation :", error);
-      alert("Une erreur est survenue. Veuillez réessayer.");
+      alert("Une erreur est survenue. Veuillez réessayer ou revoire le numero de siege.");
     }
   };
 
@@ -161,6 +173,27 @@ const Reservation = () => {
       });
   }, []);
 
+  useEffect(() => {
+    if (selectedTrajet && formData.date) {
+      axios
+        .get(`http://localhost:5001/api/reservation/seatReservation?departureCity=${selectedTrajet.origine}&arrivalCity=${selectedTrajet.destination}&date=${formData.date}`)
+        .then(response => {
+          if (response.data.success) {
+            const reservedSeatsList = response.data.reservations.map(seat => seat.toString()); // S'assurer que ce sont des strings
+            setReservedSeats(reservedSeatsList);
+  
+            // Mise à jour des sièges disponibles après récupération des réservations
+            const capacite = selectedTrajet.vehicule_id?.capacite || 0;
+            const allSeats = Array.from({ length: capacite }, (_, i) => i + 1);
+            const availableSeats = allSeats.filter(seat => !reservedSeatsList.includes(seat.toString()));
+            setSeatNumbers(availableSeats);
+          }
+        })
+        .catch(error => console.error("Erreur lors de la récupération des sièges réservés :", error));
+    }
+  }, [selectedTrajet, formData.date]);
+  
+  
 
 
 // Vérifie si un trajet est sélectionné
@@ -190,7 +223,7 @@ const trajetSelectionne = trajets.length > 0 ? trajets[0] : null;
         <CModalBody style={{ marginBottom: '150px' }}>
         {/* formulaire de reservation */}
         <CForm onSubmit={handleSubmit}>
-          <CRow className="g-3">
+          <CRow className="">
             <CCol md={6}>
               <label htmlFor="departureCity">Départ</label>
               <CFormSelect id="departureCity" name="departureCity" value={formData.departureCity} onChange={handleChange} required>
@@ -217,22 +250,39 @@ const trajetSelectionne = trajets.length > 0 ? trajets[0] : null;
             
 
             <CCol md={6}>
-              <label htmlFor="date">Date</label>
-              <CFormInput id="date" type="date" name="date" value={formData.date} onChange={handleChange} required />
-            </CCol>
-
-
+            <label htmlFor="date">Date</label>
+            <DatePicker
+              selected={formData.date ? new Date(formData.date) : null}
+              onChange={(date) => setFormData({ ...formData, date: date.toISOString().split("T")[0] })}
+              dateFormat="yyyy-MM-dd"
+              className="form-control" // Assure la cohérence avec le style de CoreUI
+              placeholderText="Sélectionnez une date"
+            />
+          </CCol>
 
 
             <CCol md={6}>
               <label htmlFor="seatNumber">Numéro de siège</label>
               <CFormSelect id="seatNumber" name="seatNumber" value={formData.seatNumber} onChange={handleChange} required>
-                <option value="">siège</option>
+                <option value="">Sélectionnez un siège</option>
                 {seatNumbers.map((seat, index) => (
                   <option key={index} value={seat}>{seat}</option>
                 ))}
               </CFormSelect>
             </CCol>
+
+            {successMessage && (
+              <div style={{
+                backgroundColor: "#dff0d8",
+                color: "#3c763d",
+                padding: "10px",
+                margin: "10px 0",
+                borderRadius: "5px",
+                textAlign: "center"
+              }}>
+                {successMessage}
+              </div>
+            )}
 
             {selectedTrajet && (
               <CListGroup>
@@ -244,6 +294,9 @@ const trajetSelectionne = trajets.length > 0 ? trajets[0] : null;
                 </CListGroupItem>
                 <CListGroupItem className="mb-2">
                   <strong>Distance <AddRoadIcon/> : </strong> {selectedTrajet.distance} Km/h
+                </CListGroupItem>
+                <CListGroupItem className="mb-2">
+                  <strong>Nombre de places <AirlineSeatLegroomReducedIcon/> : </strong> {selectedTrajet.vehicule_id.capacite} 
                 </CListGroupItem>
                 <CListGroupItem className="mb-2">
                   <strong>Horaire <AccessTimeIcon/>:    </strong> {selectedTrajet.horaire_depart} <ArrowRightAltIcon/> {selectedTrajet.horaire_arrivee}
