@@ -1,34 +1,47 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box, TextField, Button, Typography, Paper, Grid,Modal,CircularProgress} from "@mui/material";
+import axios from "axios";
+import { io } from "socket.io-client";
+import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle, CForm, CFormInput, CAlert } from "@coreui/react";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import {Box, TextField, Button, Paper, Grid,Modal,CircularProgress,FormControlLabel,Switch,Typography} from "@mui/material";
 import "react-phone-input-2/lib/material.css";
 import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
-import { Link } from "react-router-dom";  // Importation du composant Link
+
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Importer l'icône
+import { Link } from "react-router-dom";  // Importation du composant Link
 import "react-phone-input-2/lib/material.css"; // Inutile si tu utilises `react-international-phone`
-import { useAlert } from "../contexts/AlertContext";
+import { useAlert } from "contexts/AlertContext";
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Importer l'icône
+import AdminSmartTable from "./AdminSmartTable";
 
-const Register = () => {
-  const navigate = useNavigate();
-  const [activationCode, setActivationCode] = useState("");
-  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
-  const [verificationMessage, setVerificationMessage] = useState("");
-  const [verified, setVerified] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false); // Ajout de l'état loading
-  const [timeLeft, setTimeLeft] = useState(30); // État pour le compte à rebours
-  const [canResend, setCanResend] = useState(false); // État pour savoir si on peut renvoyer le code
-  const [message, setMessage] = useState("");
-  const [code, setCode] = useState([]);
-  const { setAlert } = useAlert();
-  const [otpError, setOtpError] = useState("");  // État pour l'erreur OTP
 
-  const [formData, setFormData] = useState({
+function Admin() {
+const [visible, setVisible] = useState(false);
+const [errors, setErrors] = useState({});
+const [successMessage, setSuccessMessage] = useState("");
+const [token, setToken] = useState(localStorage.getItem("token"));
+const [editMode, setEditMode] = useState(false);
+const [loading, setLoading] = useState(false);
+const [socket, setSocket] = useState(null); // Socket.IO state
+const navigate = useNavigate();
+const [activationCode, setActivationCode] = useState("");
+const [isVerificationOpen, setIsVerificationOpen] = useState(false);
+const [verificationMessage, setVerificationMessage] = useState("");
+const [verified, setVerified] = useState(false);
+const [errorMessage, setErrorMessage] = useState("");
+const [timeLeft, setTimeLeft] = useState(30); // État pour le compte à rebours
+const [canResend, setCanResend] = useState(false); // État pour savoir si on peut renvoyer le code
+const [message, setMessage] = useState("");
+const [code, setCode] = useState([]);
+const { setAlert } = useAlert();
+const [otpError, setOtpError] = useState("");  // État pour l'erreur OTP
+
+const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     phone: "",
@@ -49,67 +62,84 @@ const Register = () => {
 
   // Enregistrer les données de l'utilisateur sans les ajouter à la base de données
   const handleRegister = async () => {
-    setLoading(true); // Démarrer le chargement
-    setTimeLeft(30); // Réinitialiser le compte à rebours
-    setCanResend(false); // Désactiver le bouton de renvoi du code
-  
-    
-  if (formData.password !== formData.confirmpassword) {
-    setAlert({ open: true, message: "Les mots de passe ne correspondent pas.", severity: "error" });
-    setLoading(false);
-    return;
-  }
-  
-    setErrorMessage("");
-    
-    try {
-      const response = await fetch("http://localhost:5001/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await response.json();
-      console.log(data);
-      if (!response.ok) throw new Error(data.message);
-
-      // Enregistrer les données localement avant vérification
-      setUserData({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
-        email: formData.email,
-        password: formData.password,
-        activationToken:data.activationToken
-      });
-
-      setAlert({ open: true, message: "Inscription réussie ! Veuillez vérifier votre compte.", severity: "success" });
-      setIsVerificationOpen(true);
-      setMessage(data.message);
-      // Démarre le compte à rebours
-      const interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval); // Arrête le compte à rebours
-            setCanResend(true); // Permet de renvoyer le code
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000); // Décrémenter chaque seconde
-
-      } catch (error) {
-        setAlert({ open: true, message: error.message, severity: "error" });
-      } finally {
-        setLoading(false); // Fin du chargement
+    setLoading(true);
+    setTimeLeft(30); 
+    setCanResend(false); 
+    console.log("FormData:", formData);
+    // Validation Checks
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password || !formData.confirmpassword) {
+        setAlert({ open: true, message: "Tous les champs sont requis.", severity: "error" });
+        setLoading(false);
+        return;
+    }
+    console.log("FormData:", formData);
+    if (formData.password !== formData.confirmpassword) {
+        setAlert({ open: true, message: "Les mots de passe ne correspondent pas.", severity: "error" });
+        setLoading(false);
+        return;
       }
+    console.log("FormData:", formData);
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        setAlert({ open: true, message: "Veuillez entrer un email valide.", severity: "error" });
+        setLoading(false);
+        return;
+    }
+    console.log("FormData:", formData);
+
+
+    
+    setErrorMessage("");
+    console.log("try")
+    try {
+        const response = await fetch("http://localhost:5001/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                phone: formData.phone,
+                email: formData.email,
+                password: formData.password,
+            }),
+        });
+
+        const data = await response.json();
+        console.log("data",data)
+        if (!response.ok) throw new Error(data.message);
+
+        // Save user data locally before verification
+        setUserData({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phone,
+            email: formData.email,
+            password: formData.password,
+            activationToken: data.activationToken,
+        });
+
+        setAlert({ open: true, message: "Inscription réussie ! Veuillez vérifier votre compte.", severity: "success" });
+        setIsVerificationOpen(true);
+        setMessage(data.message);
+
+        // Countdown logic
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    setCanResend(true);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+    } catch (error) {
+        setAlert({ open: true, message: error.message, severity: "error" });
+    } finally {
+        setLoading(false);
+    }
 };
+
 
   // Vérification du code d'activation
   const handleVerification = async () => {
@@ -138,7 +168,8 @@ const Register = () => {
       setAlert({ open: true, message: "Votre compte a été activé avec succès !", severity: "success" });
   
       setIsVerificationOpen(false); // Ferme la boîte de dialogue après la vérification
-      navigate("/login"); // Redirige l'utilisateur après la vérification
+      //  navigate("/login"); Redirige l'utilisateur après la vérification
+       setVisible(false);
     } catch (error) {
       setOtpError("Une erreur est survenue lors de la vérification du code OTP.");
       setAlert({ open: true, message: "Une erreur est survenue lors de la vérification du code OTP.", severity: "error" });
@@ -148,29 +179,28 @@ const Register = () => {
   
 
   return (
-    <>
-      {alert.open && (
-        <Stack 
-          sx={{ 
-            width: '100%', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)' 
-          }} 
-          spacing={2}
-        >
-          <Alert severity={alert.severity}>{alert.message}</Alert>
-        </Stack>
-      )}
+    <Box p={3}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="h5" sx={{ fontWeight: 600, color: "#333", letterSpacing: "0.5px" }}>
+          Administrateurs
+        </Typography>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginRight: "1rem" }}>
+          <CButton color="primary" onClick={() => setVisible(!visible)}>
+            Nouveau Admin <ManageAccountsIcon />
+          </CButton>
+        </div>
+      </div>
+      <Typography>Gérez vos admin ici.</Typography>
 
-      <Box sx={{ height: "300px", backgroundImage: "url('https://mdbootstrap.com/img/new/textures/full/171.jpg')", backgroundSize: "cover", backgroundPosition: "center" }} />
-
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "-100px", padding: "2rem" }}>
-        <Paper elevation={5} sx={{ padding: "2rem", width: "100%", maxWidth: "700px", backdropFilter: "blur(30px)", borderRadius: "10px" }}>
-          <Typography variant="h5" fontWeight="bold" textAlign="center" mb={2}>Inscription</Typography>
+      <CModal alignment="center" scrollable visible={visible} onClose={() => setVisible(false)} aria-labelledby="ChauffeurModal"
+      size="md"  >
+         <CModalHeader>
+          <CModalTitle id="ChauffeurModal" style={{ fontSize: "1rem", fontWeight: "bold", color: "rgb(31, 140, 58)", textAlign: "center", width: "100%" }}>
+            {editMode ? "Modifier le Admin" : "Ajout d'un Admin"} <ManageAccountsIcon />
+          </CModalTitle>
+        </CModalHeader>
+      <Box sx={{ display: "flex", justifyContent: "center", width: "100%", alignItems: "center", padding: "2rem" }}>
+   
 
           <form onSubmit={(e) => { e.preventDefault(); handleRegister(); }}>
             <Grid container spacing={1}>
@@ -198,30 +228,10 @@ const Register = () => {
                 sx={{ mt: 2 }}
                 disabled={loading} // Désactiver le bouton pendant le chargement
               >
-              {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "S'inscrire"}
+              {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Enregistrer"}
             </Button>
-
-            {/* Lien retour au login */}
-            <Box sx={{ textAlign: "center", mt: 2 }}>
-                <Typography variant="body2">
-                  <Link
-                    to="/login"
-                    style={{
-                      textDecoration: "none",
-                      color: loading ? "gray" : "primary", // Désactiver le lien en changeant la couleur
-                      pointerEvents: loading ? "none" : "auto", // Empêcher l'interaction avec le lien si en chargement
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "5px",
-                    }}
-                  >
-                    <ArrowBackIcon fontSize="small" /> Retour à la connexion
-                  </Link>
-                </Typography>
-              </Box>
           </form>
-        </Paper>
+     
       </Box>
 
       {/* Dialog for OTP verification */}
@@ -306,8 +316,15 @@ const Register = () => {
         </DialogActions>
       </Box>
       </Modal>
-    </>
-  );
-};
+      </CModal>
 
-export default Register;
+
+      {/* table */}
+      <AdminSmartTable/>
+
+
+    </Box>
+  )
+}
+
+export default Admin

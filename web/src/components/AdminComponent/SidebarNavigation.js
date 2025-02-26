@@ -12,6 +12,10 @@ import BookOnlineIcon from '@mui/icons-material/BookOnline';
 import LayersIcon from '@mui/icons-material/Layers';
 import HailIcon from '@mui/icons-material/Hail';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import LogoutIcon from '@mui/icons-material/Logout';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
 
 // Définir la configuration de la navigation
 export const NAVIGATION = [
@@ -50,15 +54,20 @@ export const NAVIGATION = [
     icon: <PaymentIcon />,
   },
   {
+    segment: 'admin/admins',
+    title: 'Nos Admins',
+    icon: <ManageAccountsIcon />,
+  },
+  {
     segment: 'admin/client',
     title: 'Nos Clients',
     icon: <HailIcon />,
   },
-  {
-    segment: 'admin/promotion',
-    title: 'Promotion',
-    icon: <LocalOfferIcon />,
-  },
+  // {
+  //   segment: 'admin/promotion',
+  //   title: 'Promotion',
+  //   icon: <LocalOfferIcon />,
+  // },
   {
     kind: 'divider',
   },
@@ -72,14 +81,14 @@ export const NAVIGATION = [
     icon: <GpsFixedIcon />,
   },
   {
-    segment: 'reports',
+    segment: 'admin',
     title: 'Rapports',
     icon: <BarChartIcon />,
     children: [
       {
-        segment: 'sales',
-        title: 'Ventes',
-        icon: <DescriptionIcon />,
+        segment: 'planing',
+        title: 'Planification',
+        icon: <FactCheckIcon />,
       },
       {
         segment: 'traffic',
@@ -89,10 +98,10 @@ export const NAVIGATION = [
     ],
   },
   {
-    segment: 'integrations',
-    title: 'Intégrations',
-    icon: <LayersIcon />,
-  },
+    segment: 'admin/logout',
+    title: 'Deconnexion',
+    icon: <LogoutIcon />,
+  }
 ];
 
 // Composant SidebarNavigation qui génère la navigation dynamique

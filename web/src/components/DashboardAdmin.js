@@ -19,6 +19,9 @@ import Promotion from './AdminComponent/Promotion';
 import SidebarNavigation from './AdminComponent/SidebarNavigation';
 import Ville from './AdminComponent/Ville';
 import Client from './AdminComponent/Client';
+import Admin from './AdminComponent/Admin';
+import Planification from './AdminComponent/Planification';
+
 
 // Définir le thème
 const demoTheme = createTheme({
@@ -86,6 +89,8 @@ function DashboardAdmin(props) {
             <Route path="promotion" element={<Promotion />} />
             <Route path="ville" element={<Ville />} />
             <Route path="client" element={<Client />} />
+            <Route path="admins" element={<Admin />} />
+            <Route path="planing" element={<Planification/>}/>
           </Routes>
         
       </DashboardLayout>

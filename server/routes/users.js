@@ -2,6 +2,8 @@ const express = require("express");
 const User = require("../models/User");
 const router = express.Router();
 const formidable = require("formidable");
+const auth = require("../middleware/auth");
+const authAdmin = require("../middleware/authAdmin");
 const excelToJson = require("convert-excel-to-json");
 const Errors = require("../helpers/Errors");
 const CatchAsyncError = require("../helpers/CatchAsyncError");
@@ -26,6 +28,22 @@ router.post(
     }
   })
 );
+
+// Route pour promouvoir un utilisateur en admin (accessible uniquement aux admins)
+router.put("/make-admin/:id", auth, authAdmin, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return next(new Errors("Utilisateur non trouvé", 404));
+
+    user.isAdmin = true;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Utilisateur promu en admin", user });
+  } catch (error) {
+    next(new Errors(error.message, 500));
+  }
+});
+
 
 // GET USERS
 // URL : http://localhost:5000/users/search?page=1
@@ -74,7 +92,7 @@ router.get(
 // RESPONSE ERROR
 // RESPONSE : STATUS - 401
 router.get(
-  "/",
+  "/", auth, authAdmin,
   CatchAsyncError(async (req, res, next) => {
     try {
       let page = parseInt(req.query.page) ;
@@ -99,6 +117,84 @@ router.get(
     }
   })
 );
+
+
+//GET ADMIN LIST
+router.get(
+  "/admins", auth, authAdmin,
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      let page = parseInt(req.query.page) ;
+      let limit = parseInt(req.query.limit);
+      let skip = (page - 1) * limit;
+      
+      let totalAdmins = await User.countDocuments({ isAdmin: true });
+      let admins = await User.find({ isAdmin: true })
+        .select("_id profilePicture firstName lastName email phone isAdmin createdAt")
+        .skip(skip)
+        .limit(limit);
+      
+      res.status(200).json({
+        success: true,
+        admins,
+        currentPage: page,
+        totalPages: Math.ceil(totalAdmins / limit),
+        totalAdmins
+      });
+    } catch (error) {
+      next(new Errors(error.message, 400));
+    }
+  })
+);
+
+//GET CLIENT LIST
+router.get(
+  "/clients", auth, 
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      let page = parseInt(req.query.page) ;
+      let limit = parseInt(req.query.limit) ;
+      let skip = (page - 1) * limit;
+
+      let totalClients = await User.countDocuments({ isAdmin: false });
+      let clients = await User.find({ isAdmin: false })
+        .select("_id profilePicture firstName lastName email phone isAdmin createdAt")
+        .skip(skip)
+        .limit(limit);
+
+      res.status(200).json({
+        success: true,
+        clients,
+        currentPage: page,
+        totalPages: Math.ceil(totalClients / limit),
+        totalClients
+      });
+    } catch (error) {
+      next(new Errors(error.message, 400));
+    }
+  })
+);
+
+//GET CLIENT WITHOUT PAGINATION
+router.get(
+  "/clients-no-pagination",
+  auth,
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      let clients = await User.find({ isAdmin: false })
+        .select("_id profilePicture firstName lastName email phone isAdmin createdAt");
+
+      res.status(200).json({
+        success: true,
+        clients,
+        totalClients: clients.length,
+      });
+    } catch (error) {
+      next(new Errors(error.message, 400));
+    }
+  })
+);
+
 
 // GET A USER
 // URL : http://localhost:5000/users/:userId
@@ -132,6 +228,7 @@ router.get(
 // RESPONSE : STATUS - 401
 router.put(
   "/:userId",
+  auth,authAdmin,
   CatchAsyncError(async (req, res, next) => {
     try {
       const user = await User.findByIdAndUpdate(req.params.userId, req.body, {
@@ -149,6 +246,7 @@ router.put(
 // METTRE À JOUR LE RÔLE D'UN UTILISATEUR
 router.put(
   "/role/:userId",
+  auth,authAdmin,
   CatchAsyncError(async (req, res, next) => {
     try {
       const { isAdmin } = req.body;

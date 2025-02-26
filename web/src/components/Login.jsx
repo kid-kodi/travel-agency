@@ -50,7 +50,11 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       // Redirection après connexion réussie
-      navigate("/");
+      if (data.user.isAdmin) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
 
       // Afficher un message de succès
       setAlertMessage("Connexion réussie !");

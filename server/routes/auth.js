@@ -10,7 +10,9 @@ const jwt = require("jsonwebtoken");
 
 // Route d'inscription
 router.post("/register", async (req, res, next) => {
+  console.log("admin percute")
   try {
+    
     const { firstName, lastName, phone, email, password } = req.body;
 
     // Vérifier si l'utilisateur existe déjà avec le même numéro de téléphone
@@ -39,7 +41,7 @@ router.post("/register", async (req, res, next) => {
     });
 
    
-
+     console.log(user)
     // Générer le code d'activation
     const activation = Utility.generateActivationToken(user);
 
@@ -62,6 +64,11 @@ router.post("/register", async (req, res, next) => {
   }
 });
 
+
+  //verification du type de user connecter
+  router.get("/check-admin", auth, (req, res) => {
+    res.status(200).json({ isAdmin: req.user.isAdmin });
+  });
 
 // ACTIVATE ACCOUNT
 router.post(

@@ -21,6 +21,7 @@ const vehiculeRoutes = require("./routes/vehicule");
 const chauffeurRoutes = require("./routes/chauffeur");
 const villeRoutes = require("./routes/ville");
 const trajetRoutes = require("./routes/trajet");
+const planningRoutes =require("./routes/planning");
 
 dotenv.config();
 
@@ -80,12 +81,13 @@ app.use("/api/vehicule", vehiculeRoutes);
 app.use("/api/chauffeur", chauffeurRoutes);
 app.use("/api/ville", villeRoutes);
 app.use("/api/trajet", trajetRoutes);
+app.use("/api/planning",planningRoutes);
 
 // Gestion des erreurs
 app.use(ErrorHandler);
 app.set("socketio", io);
 // Démarrage du serveur
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`🚀 Server started on port ${PORT}`);
 });

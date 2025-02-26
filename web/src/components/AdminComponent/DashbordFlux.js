@@ -24,7 +24,7 @@ import {
 } from '@coreui/react';
 
 export const DashbordFlux = () => {
-  const socket = io("http://localhost:5000");
+  const socket = io("http://localhost:5001");
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [paymentsByMonth, setPaymentsByMonth] = useState([]);
@@ -69,9 +69,16 @@ export const DashbordFlux = () => {
   };
 
   const fetchClients = async () => {
+    const token = localStorage.getItem("token");
     try {
-      const { data } = await axios.get("http://localhost:5001/api/users/");
-      setTotalClients(data.users.length);
+      const { data } = await axios.get("http://localhost:5001/api/users/clients-no-pagination",{
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setTotalClients(data.totalClients);
+      console.log(totalClients)
     } catch (error) {
       console.error("Erreur lors de la récupération des utilisateurs :", error);
     }

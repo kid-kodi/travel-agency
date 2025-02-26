@@ -17,97 +17,107 @@ const getBadge = (status) => {
   }
 };
 
-function ClientSmartTable() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [details, setDetails] = useState([]);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [search, setSearch] = useState("");
-  const limit = 5;
-  const [showModal, setShowModal] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
 
-  useEffect(() => {
-    fetchUsers(page);
-  }, []);
-
-  const fetchUsers = async (page = 1) => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token"); // Récupérer le token depuis le stockage local
-      const { data } = await axios.get(`http://localhost:5001/api/users/clients?page=${page}&limit=5`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Ajouter le token dans l'en-tête
-        },
-      });
-      
-      console.log("Utilisateurs récupérés :", data);
-      setUsers(data.clients || []);
-      setPages(data.totalPages || 1);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des utilisateurs :", error);
+function AdminSmartTable() {
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [details, setDetails] = useState([]);
+    const [page, setPage] = useState(1);
+    const [pages, setPages] = useState(1);
+    const [search, setSearch] = useState("");
+    const limit = 5;
+    const [showModal, setShowModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+  
+    useEffect(() => {
+      fetchUsers(page);
+    }, []);
+  
+    const fetchUsers = async (page = 1) => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token"); // Récupérer le token depuis le stockage local
+        const { data } = await axios.get(`http://localhost:5001/api/users/admins?page=${page}&limit=5`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Ajouter le token dans l'en-tête
+          },
+        });
+        console.log("Utilisateurs récupérés :", data);
+        setUsers(data.admins || []);
+        setPages(data.totalPages || 1);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des utilisateurs :", error);
+      }
+      setLoading(false);
+    };
+    
+  
+  
+    //pagination
+   const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pages) {
+      setPage(newPage);
     }
-    setLoading(false);
   };
-  
-
-
-  //pagination
- const handlePageChange = (newPage) => {
-  if (newPage >= 1 && newPage <= pages) {
-    setPage(newPage);
-  }
-};
-  
-
+    
   const deleteUser = async (id) => {
     try {
-      await axios.delete(`http://localhost:5001/api/users/${id}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:5001/api/users/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setUsers(users.filter(user => user._id !== id));
       setShowModal(false);
     } catch (error) {
-      console.error("Erreur lors de la suppression de l'utilisateur :", error);
+      console.error("Erreur lors de la suppression de l'admin :", error);
     }
   };
-
+  
   const toggleAdminRole = async (user) => {
     try {
+      const token = localStorage.getItem("token");
       const updatedUser = { ...user, isAdmin: !user.isAdmin };
-
+  
       await axios.put(`http://localhost:5001/api/users/role/${user._id}`, {
         isAdmin: updatedUser.isAdmin,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      setUsers(users.map((u) => (u._id === user._id ? updatedUser : u)));
+  
+      // Met à jour directement l'état pour éviter un délai
+      setUsers(users.map((u) => 
+        u._id === user._id ? { ...u, isAdmin: updatedUser.isAdmin } : u
+      ));
     } catch (error) {
       console.error("Erreur lors de la mise à jour du rôle :", error);
     }
   };
-
-  const toggleDetails = (id) => {
-    setDetails((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
-
-
-
-  const columns = [
-    { key: "firstName", label: "Prénom" },
-    { key: "lastName", label: "Nom" },
-    { key: "email", label: "Email" },
-    { key: "phone", label: "Téléphone" },
-    // {
-    //   key: "isAdmin",
-    //   label: "Admin",
-    //   _style: { width: "10%" },
-    // },
-    { key: "show_details", label: "", filter: false, sorter: false },
-  ];
-
-  return (
-    <>
+  
+  
+  
+    const toggleDetails = (id) => {
+      setDetails((prev) =>
+        prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      );
+    };
+  
+  
+  
+    const columns = [
+      { key: "firstName", label: "Prénom" },
+      { key: "lastName", label: "Nom" },
+      { key: "email", label: "Email" },
+      { key: "phone", label: "Téléphone" },
+      {
+        key: "isAdmin",
+        label: "Admin",
+        _style: { width: "10%" },
+      },
+      { key: "show_details", label: "", filter: false, sorter: false },
+    ];
+  
+    return (
+   <>
       <CSmartTable
         columns={columns}
         items={users}
@@ -121,15 +131,14 @@ function ClientSmartTable() {
         onPageChange={(page) => setPage(page)}
         scopedColumns={{
 
-          isAdmin: (item) => (
-            <td>
-              <CFormSwitch
-                checked={item.isAdmin}
-                onChange={() => toggleAdminRole(item)}
-                label=""
-              />
-
-            </td>
+            isAdmin: (item) => (
+                <td>
+                  <CFormSwitch
+                    checked={item.isAdmin ? true : false} // Si isAdmin est true, checked = true
+                    onChange={() => toggleAdminRole(item)}
+                    label=""
+                  />
+                </td>
           ),
         show_details: (item) => (
             <td className="py-2">
@@ -184,7 +193,7 @@ function ClientSmartTable() {
       <CModal visible={showModal} onClose={() => setShowModal(false)} alignment="center">
         <CModalHeader>Confirmation de suppression</CModalHeader>
         <CModalBody>
-          Êtes-vous sûr de vouloir supprimer cet utilisateur ?
+          Êtes-vous sûr de vouloir supprimer cet Administrateur  ?
         </CModalBody>
         <CModalFooter>
           <CButton color="secondary" onClick={() => setShowModal(false)}>Annuler</CButton>
@@ -223,7 +232,7 @@ function ClientSmartTable() {
             </CPagination>
           </div>
     </>
-  );
-}
+    );
+  }
 
-export default ClientSmartTable;
+export default AdminSmartTable
