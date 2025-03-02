@@ -14,7 +14,7 @@ import AddRoadIcon from '@mui/icons-material/AddRoad';
 import AirlineSeatLegroomReducedIcon from '@mui/icons-material/AirlineSeatLegroomReduced';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Import du style de react-datepicker
-
+import { io } from "socket.io-client";
 import { 
   CButton, 
   CModal, 
@@ -29,6 +29,8 @@ import {
 import { CCol, CRow } from '@coreui/react';
 import StyleIcon from '@mui/icons-material/Style';
 import TicketProcess from 'components/TicketProcess';
+
+const socket = io("http://localhost:5001");
 
 const Reservation = () => {
   const navigate = useNavigate(); 

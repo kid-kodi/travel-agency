@@ -41,5 +41,60 @@ router.post(
   })
 );
 
+// GET ALL PLANNINGS WITH TRAJET INFO
+router.get(
+  "/all",
+  auth,
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      const plannings = await Planning.find().populate("trajets");
+
+      // Émettre un événement pour mettre à jour les plannings côté client
+      req.app.get("socketio").emit("planning:update", { type: "fetch", plannings });
+
+      res.status(200).json({ success: true, plannings });
+    } catch (error) {
+      console.error("Erreur lors de la récupération des plannings:", error);
+      next(new Errors(error.message || "Erreur lors de la récupération des plannings", 400));
+    }
+  })
+);
+
+
+// DELETE A TRAJET FROM A PLANNING
+router.delete(
+  "/planning/:planningId/trajet/:trajetId",
+  auth,
+  CatchAsyncError(async (req, res, next) => {
+    try {
+      const { planningId, trajetId } = req.params;
+
+      // Vérifier si le planning existe
+      const planning = await Planning.findById(planningId);
+      if (!planning) {
+        return next(new Errors("Planning introuvable.", 404));
+      }
+
+      // Vérifier si le trajet est déjà affecté au planning
+      if (!planning.trajets.includes(trajetId)) {
+        return next(new Errors("Le trajet n'est pas affecté à ce planning.", 400));
+      }
+
+      // Retirer le trajet du planning
+      planning.trajets = planning.trajets.filter(trajet => trajet.toString() !== trajetId);
+      await planning.save();
+
+      // Émettre un événement WebSocket pour informer la suppression
+      req.app.get("socketio").emit("planning:update", { type: "delete_trajet", planningId, trajetId });
+
+      res.status(200).json({ success: true, message: "Trajet supprimé du planning avec succès." });
+    } catch (error) {
+      console.error("Erreur lors de la suppression du trajet:", error);
+      next(new Errors(error.message || "Erreur lors de la suppression du trajet du planning", 400));
+    }
+  })
+);
+
+
 
 module.exports = router;

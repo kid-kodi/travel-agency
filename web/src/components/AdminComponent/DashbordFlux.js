@@ -7,9 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
 import DirectionsBusFilledIcon from '@mui/icons-material/DirectionsBusFilled';
 import io from 'socket.io-client'; 
+import { CCard, CCardHeader, CListGroup, CListGroupItem } from '@coreui/react'
 
 // URL de votre serveur WebSocket
-
 
 import {
   CCol,
@@ -39,6 +39,10 @@ export const DashbordFlux = () => {
   const [reservations, setReservations] = useState([]);
   const [conducteurs, setConducteurs] = useState([]);
   const [displayedAmount, setDisplayedAmount] = useState(0);
+  const [plannings, setPlannings] = useState([]);
+  const [trajets, setTrajets] = useState([]);
+  const token = localStorage.getItem("token");
+  
 
   const navigate = useNavigate();
 
@@ -231,6 +235,53 @@ export const DashbordFlux = () => {
     };
   }, [navigate,totalAmount]);
 
+//trajet loading planning
+useEffect(() => {
+  let isMounted = true;
+  socket.on("planning:update", (data) => {
+    if (data.type === "create") {
+      // Ajouter le nouveau planning à l'état
+      setPlannings(prevPlannings => [...prevPlannings, data.planning]);
+    }
+  });
+
+  axios.get("http://localhost:5001/api/trajet/all-no-pagination")
+    .then(response => {
+      if (isMounted) setTrajets(response.data.trajets);
+    })
+    .catch(error => console.error("Erreur lors de la récupération des trajets :", error));
+
+  axios.get("http://localhost:5001/api/planning/all", {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(response => {
+      setPlannings(response.data.plannings);
+    })
+    .catch(error => console.error("Erreur lors de la récupération des plannings :", error));
+
+  return () => {
+    isMounted = false; 
+    socket.off("planning:update");
+  };
+}, []);
+
+
+
+  // Récupération du jour actuel en français
+  const today = new Date();
+  const options = { weekday: 'long' };
+  const jourActuel = today.toLocaleDateString('fr-FR', options);
+  const heureActuelle = today.getHours() * 60 + today.getMinutes();
+
+  // Filtrage des trajets du jour actuel
+  const planningJourActuel = plannings.filter(planning => planning.jour.toLowerCase() === jourActuel.toLowerCase());
+  const trajetsJourActuel = planningJourActuel.flatMap(planning => planning.trajets)
+    .filter(trajet => {
+      const [heure, minute] = trajet.horaire_depart.split(':').map(Number);
+      const heureDepartMinutes = heure * 60 + minute;
+      return heureDepartMinutes > heureActuelle;
+    });
+
   return (
     <CRow>
     {/* Paiements par mois */}
@@ -290,52 +341,25 @@ export const DashbordFlux = () => {
     </CCol>
   
     <CCol sm={6}>
-      <CWidgetStatsA
-        className="mb-4"
-        color="danger"
-        value={<><span className="fs-6 fw-normal">$9.000 (40.9% <CIcon icon={cilArrowTop} />)</span></>}
-        title=" Rapport en batton"
-        action={
-          <CDropdown alignment="end">
-            <CDropdownToggle color="transparent" caret={false} className="p-0">
-              <CIcon icon={cilOptions} className="text-white" />
-            </CDropdownToggle>
-            <CDropdownMenu>
-              <CDropdownItem>Action</CDropdownItem>
-              <CDropdownItem>Another action</CDropdownItem>
-              <CDropdownItem>Something else here...</CDropdownItem>
-              <CDropdownItem disabled>Disabled action</CDropdownItem>
-            </CDropdownMenu>
-          </CDropdown>
-        }
-        chart={
-          <CChartBar
-            className="mt-3 mx-3"
-            style={{ height: '70px' }}
-            data={{
-              labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-              datasets: [
-                {
-                  label: 'Dataset',
-                  backgroundColor: 'rgba(255,255,255,.2)',
-                  borderColor: 'rgba(255,255,255,.55)',
-                  data: [78, 81, 80, 45, 34, 12, 40],
-                  barPercentage: 0.6,
-                },
-              ],
-            }}
-            options={{
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                x: { grid: { display: false }, ticks: { display: false } },
-                y: { grid: { display: false }, ticks: { display: false } },
-              },
-            }}
-          />
-        }
-      />
+      <CCard style={{ width: '35rem' }}>
+        <CCardHeader>Depart disponibles pour aujourd'hui ({jourActuel})</CCardHeader>
+        <CListGroup flush style={{ fontSize: '0.875rem' }}> {/* Taille de la police réduite */}
+          {trajetsJourActuel.length > 0 ? (
+            trajetsJourActuel.map((trajet, idx) => (
+              <CListGroupItem key={idx} style={{ padding: '0.5rem 1rem', minHeight: '2rem' }}> {/* Réduction de la hauteur */}
+                <strong>{trajet.origine} → {trajet.destination}</strong>  
+                Départ: {trajet.horaire_depart} - Arrivée: {trajet.horaire_arrivee}
+              </CListGroupItem>
+            ))
+          ) : (
+            <CListGroupItem style={{ padding: '0.5rem 1rem', minHeight: '2rem' }}>
+              Aucun trajet prévu aujourd'hui.
+            </CListGroupItem>
+          )}
+        </CListGroup>
+      </CCard>
     </CCol>
+
   
     {/* Clients */}
     <CCol sm={6}>
