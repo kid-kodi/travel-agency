@@ -3,6 +3,7 @@ import { CAvatar, CBadge, CButton, CCollapse, CSmartTable, CModal, CModalBody, C
 import axios from "axios";
 import Typography from '@mui/material/Typography'; // Import Typography
 import { CPagination, CPaginationItem } from "@coreui/react";
+import AccessibleIcon from '@mui/icons-material/Accessible';
 import io from "socket.io-client"; // Import socket.io-client
 const socket = io("http://localhost:5001"); // Set up socket connection with your backend
 
@@ -44,6 +45,7 @@ export const TrajetSmartTable = ({onEdit, refreshTable }) => {
         },
       });
       setTrajets(data.trajets || []);
+      console.log("Trajets récupérés", data.trajets);
       setPages(data.pages || 1);
     } catch (error) {
       console.error("Error fetching trips:", error);
@@ -206,13 +208,13 @@ export const TrajetSmartTable = ({onEdit, refreshTable }) => {
           details: (item) => (
             <CCollapse visible={details.includes(item._id)}>
               <div className="p-2">
-                <h5 style={{ fontSize: "0.875rem" }}>Mr :<strong>{item.chauffeur_id?.nom} {item.chauffeur_id?.prenom}</strong><br /> </h5>
+                <h5 style={{ fontSize: "0.875rem" }}>Conducteur: {item.chauffeur_id?.nom} {item.chauffeur_id?.prenom}<br /> </h5>
                 <p className="text-body-secondary" style={{ fontSize: "0.875rem", marginBottom: "0.5rem" }}>
-                  Type transport : <strong>{item.type_transport}</strong><br />
-                  Distance : <strong>{item.distance}</strong> km<br />
-                  Date ajout :  <strong>{new Date(item.date_creation).toLocaleDateString()}</strong><br />
-                  Véhicule : <strong>{item.vehicule_id?.marque}</strong><br /> {/* Display vehicle brand */}
-                  Matricule : <strong>{item.vehicule_id?.immatriculation}</strong><br /> {/* Display vehicle matricule */} 
+                  Type transport: <strong>{item.type_transport}</strong><br />
+                  Distance: <strong>{item.distance}</strong> km<br />
+                  Date ajout:  <strong>{new Date(item.date_creation).toLocaleDateString()}</strong><br />
+                  Véhicule: <strong>{item.vehicule_id?.marque}</strong><br /> {/* Display vehicle brand */}
+                  Matricule: <strong>{item.vehicule_id?.immatriculation}</strong><br /> {/* Display vehicle matricule */} 
                 </p>
                 <CButton size="sm" color="info" style={{ fontSize: "0.75rem" }} onClick={() => onEdit(item)}>
                   Modifier

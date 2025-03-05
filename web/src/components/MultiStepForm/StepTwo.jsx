@@ -39,6 +39,7 @@ const StepTwo = () => {
             <FormControl>
               <FormLabel>Choisissez un horaire *</FormLabel>
               <RadioGroup
+                row
                 name="horaire"
                 value={values.horaire}
                 onChange={(e) => setFieldValue("horaire", e.target.value)}

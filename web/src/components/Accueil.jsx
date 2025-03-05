@@ -1,7 +1,7 @@
 import React from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-function Accueil() {
+function Accueil({ onReserveClick }) {
   return (
     <div className="header-carousel">
       <div id="carouselId" className="carousel slide" data-bs-ride="carousel" data-bs-interval="false">
@@ -15,26 +15,28 @@ function Accueil() {
             <div className="carousel-caption">
               <div className="container py-4">
                 <div className="row g-5">
-                <div className="col-lg-6 fadeInLeft animated" style={{ animationDelay: "1s" }}>
-                <div className="bg-secondary rounded p-5 d-flex flex-column align-items-start">
-                 <h4 className="text-white mb-4 text-start">LES VILLES QUE NOUS DESSERVONS</h4>
-                    <ul className="list-unstyled text-white fs-5 text-start ps-1">
-                    <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>ABIDJAN</li>
-                    <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>BOUAKE</li>
-                    <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>BOUNDIALI</li>
-                    <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>KHOROHO</li>
-                    <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>ODIENE</li>
-                    </ul>
-                </div>
-                </div>
-
+                  <div className="col-lg-6 fadeInLeft animated" style={{ animationDelay: "1s" }}>
+                    <div className="bg-secondary rounded p-5 d-flex flex-column align-items-start">
+                      <h4 className="text-white mb-4 text-start">LES VILLES QUE NOUS DESSERVONS</h4>
+                      <ul className="list-unstyled text-white fs-5 text-start ps-1">
+                        <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>ABIDJAN</li>
+                        <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>BOUAKE</li>
+                        <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>BOUNDIALI</li>
+                        <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>KHOROHO</li>
+                        <li className="mb-2"><i className="bi bi-geo-alt-fill me-2"></i>ODIENE</li>
+                      </ul>
+                    </div>
+                  </div>
 
                   <div className="col-lg-6 d-none d-lg-flex fadeInRight animated" style={{ animationDelay: "1s" }}>
                     <div className="text-start">
                       <h1 className="display-5 text-white">Voyagez sereinement avec RafRaf – Confort et sécurité garantis !</h1>
-                      <Link to="" className="btn btn-primary rounded-pill py-2 px-4 me-2">
-                            Reserver
-                      </Link>
+                      <button 
+                        className="btn btn-primary rounded-pill py-2 px-4 me-2"
+                        onClick={onReserveClick}
+                      >
+                        Reserver
+                      </button>
                     </div>
                   </div>
                 </div>

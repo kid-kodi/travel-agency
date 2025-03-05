@@ -15,25 +15,16 @@ import AirlineSeatLegroomReducedIcon from '@mui/icons-material/AirlineSeatLegroo
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Import du style de react-datepicker
 import { io } from "socket.io-client";
-import { 
-  CButton, 
-  CModal, 
-  CModalBody, 
-  CModalFooter, 
-  CFormSelect, 
-  CModalHeader, 
-  CModalTitle, 
-  CForm, 
-  CFormInput 
-} from "@coreui/react";
+import { CButton, CModal,CModalBody, CModalFooter, CFormSelect, CModalHeader, CModalTitle, CForm, CFormInput } from "@coreui/react";
 import { CCol, CRow } from '@coreui/react';
 import StyleIcon from '@mui/icons-material/Style';
 import TicketProcess from 'components/TicketProcess';
-
+import { useLocation } from 'react-router-dom';
 const socket = io("http://localhost:5001");
 
 const Reservation = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const location = useLocation(); 
   const [visible, setVisible] = useState(false);
   const [trajets, setTrajets] = useState([]);
   const [selectedTrajet, setSelectedTrajet] = useState(null);
@@ -48,9 +39,9 @@ const Reservation = () => {
   console.log("Token récupéré :", token);
 
   const [formData, setFormData] = useState({
-    departureCity: '',
-    arrivalCity: '',
-    date: '',
+    departureCity: location.state?.departureCity || '',
+    arrivalCity: location.state?.arrivalCity || '',
+    date: location.state?.date || '',
     tarif: '',
     horaire: '',
     seatNumber: '',
@@ -137,6 +128,7 @@ const Reservation = () => {
          // Stocker l'ID de la réservation dans le localStorage
         console.log("ID de la réservation stocké :", response.data.reservation._id);
         localStorage.setItem("reservationId", response.data.reservation._id);
+        localStorage.setItem("reservationData", JSON.stringify(reservationData));
         // Rediriger vers la page de paiement
         setTimeout(() => {
           setVisible(false); // Fermer la modal après succès
@@ -195,12 +187,66 @@ const Reservation = () => {
     }
   }, [selectedTrajet, formData.date]);
   
+  // Mettre à jour le formulaire si les données sont passées via la navigation
+  useEffect(() => {
+    if (location.state) {
+      const { departureCity, arrivalCity } = location.state;
+  
+      // Mettre à jour le formulaire avec les valeurs passées
+      setFormData((prevData) => ({
+        ...prevData,
+        departureCity,
+        arrivalCity
+      }));
+  
+      // Filtrer les villes d'arrivée basées sur la ville de départ sélectionnée
+      const filteredArrivalCities = [...new Set(
+        trajets.filter((trajet) => trajet.origine === departureCity).map((trajet) => trajet.destination)
+      )];
+  
+      setArrivalCities(filteredArrivalCities);
+      
+      // Trouver le trajet correspondant
+      const trajetCorrespondant = trajets.find(
+        (trajet) => trajet.origine === departureCity && trajet.destination === arrivalCity
+      );
+  
+      if (trajetCorrespondant) {
+        setSelectedTrajet(trajetCorrespondant);
+  
+        setFormData((prevData) => ({
+          ...prevData,
+          tarif: trajetCorrespondant.prix,
+          horaire: `${trajetCorrespondant.horaire_depart} - ${trajetCorrespondant.horaire_arrivee}`
+        }));
+  
+        // Récupérer les sièges réservés pour ce trajet
+        axios
+          .get(`http://localhost:5001/api/reservation/seatReservation?departureCity=${departureCity}&arrivalCity=${arrivalCity}&date=${new Date().toISOString().split("T")[0]}`)
+          .then(response => {
+            if (response.data.success) {
+              const reservedSeatsList = response.data.reservations.map(seat => seat.toString());
+              setReservedSeats(reservedSeatsList);
+  
+              // Générer la liste des sièges disponibles
+              const capacite = trajetCorrespondant.vehicule_id?.capacite || 0;
+              const allSeats = Array.from({ length: capacite }, (_, i) => i + 1);
+              const availableSeats = allSeats.filter(seat => !reservedSeatsList.includes(seat.toString()));
+  
+              setSeatNumbers(availableSeats);
+            }
+          })
+          .catch(error => console.error("Erreur lors de la récupération des sièges réservés :", error));
+      }
+      setVisible(true);
+    }
+  }, [location.state, trajets]);
   
 
 
 // Vérifie si un trajet est sélectionné
 const trajetSelectionne = trajets.length > 0 ? trajets[0] : null; 
-
+console.log("donnee passe forma :", formData);
   return (
     <Box p={3}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -238,17 +284,22 @@ const trajetSelectionne = trajets.length > 0 ? trajets[0] : null;
               </CFormSelect>
             </CCol>
 
+
+
+
             <CCol md={6}>
               <label htmlFor="arrivalCity">Destination</label>
-              <CFormSelect id="arrivalCity" name="arrivalCity" value={formData.arrivalCity} onChange={handleChange} required>
-                <option value="">Sélectionnez une ville</option>
-                {arrivalCities.map((city, index) => (
-                  <option key={index} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </CFormSelect>
+             
+                <CFormSelect id="arrivalCity" name="arrivalCity" value={formData.arrivalCity} onChange={handleChange} required>
+                  <option value="">Sélectionnez une ville</option>
+                  {arrivalCities.map((city, index) => (
+                    <option key={index} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </CFormSelect>
             </CCol>
+
             
 
             <CCol md={6}>

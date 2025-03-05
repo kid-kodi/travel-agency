@@ -43,7 +43,17 @@ export const DashbordFlux = () => {
   const [trajets, setTrajets] = useState([]);
   const token = localStorage.getItem("token");
   
-
+  const [formData, setFormData] = useState({
+    departureCity: '',
+    arrivalCity: '',
+    date: '',
+    tarif: '',
+    horaire: '',
+    seatNumber: '',
+    paymentStatus: ''
+  });
+  
+  const [selectedTrajet, setSelectedTrajet] = useState(null);
   const navigate = useNavigate();
 
   const fetchPayments = async () => {
@@ -266,6 +276,17 @@ useEffect(() => {
 }, []);
 
 
+const handleTrajetClick = (trajet) => {
+  navigate("/admin/reservation", { 
+    state: { 
+      departureCity: trajet.origine, 
+      arrivalCity: trajet.destination, 
+      date: new Date().toISOString().split("T")[0] // Date actuelle
+    }
+  });
+};
+
+
 
   // Récupération du jour actuel en français
   const today = new Date();
@@ -346,9 +367,11 @@ useEffect(() => {
         <CListGroup flush style={{ fontSize: '0.875rem' }}> {/* Taille de la police réduite */}
           {trajetsJourActuel.length > 0 ? (
             trajetsJourActuel.map((trajet, idx) => (
-              <CListGroupItem key={idx} style={{ padding: '0.5rem 1rem', minHeight: '2rem' }}> {/* Réduction de la hauteur */}
-                <strong>{trajet.origine} → {trajet.destination}</strong>  
-                Départ: {trajet.horaire_depart} - Arrivée: {trajet.horaire_arrivee}
+              <CListGroupItem key={idx} 
+              style={{ padding: '0.5rem 1rem', minHeight: '2rem' , cursor: 'pointer'}}
+              onClick={() => handleTrajetClick(trajet)}
+              > {/* Réduction de la hauteur */}
+                <strong>{trajet.origine} → {trajet.destination}</strong> Départ: {trajet.horaire_depart} - Arrivée: {trajet.horaire_arrivee}
               </CListGroupItem>
             ))
           ) : (
@@ -435,7 +458,6 @@ useEffect(() => {
         Véhicules en voyage / Total
       </div>
     </CCol>
-
   </CRow>
   
   )

@@ -46,7 +46,10 @@ function Planification() {
   
     axios.get("http://localhost:5001/api/trajet/all-no-pagination")
       .then(response => {
-        if (isMounted) setTrajets(response.data.trajets);
+        if (isMounted) {
+          setTrajets(response.data.trajets);
+          console.log(response.data.trajets);
+        }
       })
       .catch(error => console.error("Erreur lors de la récupération des trajets :", error));
   
@@ -96,23 +99,26 @@ function Planification() {
     }
   };
 
-  const handleDeleteTrajet = async (planningId, trajetId) => {
+  const handleDeleteTrajet = async (planningId) => {
+    console.log("Suppression de tous les trajets pour le planning :", planningId);
+  
     try {
-      await axios.delete(`http://localhost:5001/api/planning/${planningId}/trajet/${trajetId}`, {
+      await axios.delete(`http://localhost:5001/api/planning/${planningId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
   
       setPlannings(plannings.map(planning => 
         planning._id === planningId ? { 
           ...planning, 
-          trajets: planning.trajets.filter(t => t._id !== trajetId) 
+          trajets: [] // Supprime tous les trajets du planning côté frontend
         } : planning
       ));
   
-      setMessage("Trajet supprimé avec succès");
+      setMessage("Trajet supprimés avec succès");
       setSeverity("success");
     } catch (error) {
-      setMessage("Erreur lors de la suppression du trajet");
+      console.error("Erreur suppression des trajets:", error.response?.data || error.message);
+      setMessage(error.response?.data?.message || "Erreur lors de la suppression des trajets");
       setSeverity("error");
     }
   };
@@ -138,6 +144,8 @@ function Planification() {
         {joursSemaine.map((jour, index) => {
           const planningJour = plannings.filter(planning => planning.jour === jour);
           const trajetsJour = planningJour.flatMap(planning => planning.trajets);
+          console.log("test",trajetsJour);
+          console.log("voir",planningJour);
           return (
             <CAccordionItem itemKey={index + 1} key={jour}>
               <CAccordionHeader>{jour}</CAccordionHeader>
@@ -148,9 +156,10 @@ function Planification() {
                       {trajetsJour.map((trajet, idx) => (
                         <Box key={trajet._id} display="flex" alignItems="center" justifyContent="space-between">
                         <Typography key={idx}>
-                          {trajet.origine} → {trajet.destination} | Départ: {trajet.horaire_depart} - Arrivée: {trajet.horaire_arrivee}
+                          {trajet.origine} → {trajet.destination} | Départ: {trajet.horaire_depart} - Arrivée: {trajet.horaire_arrivee}  | Véhicule: {trajet.vehicule_id?.capacite} places
                         </Typography>
-                        <IconButton color="error" onClick={() => handleDeleteTrajet(planningJour[0]?._id, trajet._id)}>
+
+                        <IconButton color="error" onClick={() => handleDeleteTrajet(planningJour[0]?._id)}>
                           <DeleteIcon />
                         </IconButton>
                         <Divider sx={{ my: 2 }} />

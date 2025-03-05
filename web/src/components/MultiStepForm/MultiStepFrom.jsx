@@ -61,7 +61,7 @@ const MultiStepForm = () => {
 
   return (
     <Provider value={{ details, setDetails, address, setAddress, next, prev }}>
-      <div className="multi-step-container" style={{ justifyContent: 'flex-center',marginBottom:'1%'}}>
+      <div className="multi-step-container" style={{ justifyContent: 'flex-center',marginBottom:''}}>
       {successMessage && (
         <Stack 
         sx={{ 
@@ -88,7 +88,7 @@ const MultiStepForm = () => {
           </Stepper>
         </Box>
         
-        <div className="form-container" style={{ marginTop: "4%" ,marginLeft: "4%"}}>
+        <div className="form-container" style={{ marginTop: "" ,marginLeft: "4%"}}>
           {renderStep(currentStep, successMessage, setSuccessMessage)}
         </div>
 

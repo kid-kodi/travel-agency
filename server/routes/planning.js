@@ -47,7 +47,11 @@ router.get(
   auth,
   CatchAsyncError(async (req, res, next) => {
     try {
-      const plannings = await Planning.find().populate("trajets");
+      const plannings = await Planning.find().populate({
+        path: "trajets",
+        populate: { path: "vehicule_id" }
+      });
+      
 
       // Émettre un événement pour mettre à jour les plannings côté client
       req.app.get("socketio").emit("planning:update", { type: "fetch", plannings });
@@ -63,34 +67,30 @@ router.get(
 
 // DELETE A TRAJET FROM A PLANNING
 router.delete(
-  "/planning/:planningId/trajet/:trajetId",
-  auth,
+  "/:planningId",
+  
   CatchAsyncError(async (req, res, next) => {
     try {
-      const { planningId, trajetId } = req.params;
-
+      const { planningId } = req.params;
+      console.log("Planning trouvé :", planningId);
       // Vérifier si le planning existe
       const planning = await Planning.findById(planningId);
+      console.log("Planning trouvé :", planning);
       if (!planning) {
         return next(new Errors("Planning introuvable.", 404));
       }
 
-      // Vérifier si le trajet est déjà affecté au planning
-      if (!planning.trajets.includes(trajetId)) {
-        return next(new Errors("Le trajet n'est pas affecté à ce planning.", 400));
-      }
-
-      // Retirer le trajet du planning
-      planning.trajets = planning.trajets.filter(trajet => trajet.toString() !== trajetId);
+      // Supprimer tous les trajets du planning
+      planning.trajets = [];
       await planning.save();
 
       // Émettre un événement WebSocket pour informer la suppression
-      req.app.get("socketio").emit("planning:update", { type: "delete_trajet", planningId, trajetId });
+      req.app.get("socketio").emit("planning:update", { type: "delete_all_trajets", planningId });
 
-      res.status(200).json({ success: true, message: "Trajet supprimé du planning avec succès." });
+      res.status(200).json({ success: true, message: "Tous les trajets ont été supprimés du planning avec succès." });
     } catch (error) {
-      console.error("Erreur lors de la suppression du trajet:", error);
-      next(new Errors(error.message || "Erreur lors de la suppression du trajet du planning", 400));
+      console.error("Erreur lors de la suppression des trajets:", error);
+      next(new Errors(error.message || "Erreur lors de la suppression des trajets du planning", 400));
     }
   })
 );

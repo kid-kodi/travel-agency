@@ -119,6 +119,23 @@ export const VehiculeSmartTable = ({ onEdit, refreshTable }) => {
     };
   }, [page, search]);
 
+
+  const handleStatusChange = async (id, newStatus) => {
+    const token = localStorage.getItem("token");
+    try {
+      const { data } = await axios.patch(
+        `http://localhost:5001/api/vehicule/${id}`,
+        { statut: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setVehicules((prev) =>
+        prev.map((vehicule) => (vehicule._id === id ? { ...vehicule, statut: newStatus } : vehicule))
+      );
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du statut :", error);
+    }
+  };
+
   const columns = [
     { key: "immatriculation", label: "Immatriculation" },
     { key: "marque", label: "Marque" },
