@@ -337,7 +337,7 @@ function Trajet() {
                 <CFormSelect name="origine" value={formData.origine} onChange={handleChange}>
                   <option value="">Sélectionnez une ville</option>
                   {villes.map((ville) => (
-                    <option key={ville.id} value={ville.nom}>{ville.nom}</option>
+                    <option key={ville._id} value={ville.nom}>{ville.nom}</option>
                   ))}
                 </CFormSelect>
               </Grid>
@@ -349,7 +349,7 @@ function Trajet() {
                   {villes
                     .filter((ville) => ville.nom !== formData.origine)
                     .map((ville) => (
-                      <option key={ville.id} value={ville.nom}>{ville.nom}</option>
+                      <option key={ville._id} value={ville.nom}>{ville.nom}</option>
                     ))}
                 </CFormSelect>
               </Grid>

@@ -142,7 +142,6 @@ export const ConducteurSmartTable = ({ onEdit, refreshTable }) => {
       cleaner
       clickableRows
       itemsPerPage={5}
-      onPageChange={(page) => setPage(page)}
       scopedColumns={{
         statut: (item) => (
           <td>

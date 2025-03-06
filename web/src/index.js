@@ -6,7 +6,7 @@ import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, useLocation } from "react-router-dom";
 import "antd/dist/antd.css";
-
+import "./axiosConfig"; // Active la configuration d'Axios globalement 
 import App from "./App";
 import FlashProvider from "./contexts/FlashProvider";
 import ApiProvider from "./contexts/ApiProvider";

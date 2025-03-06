@@ -4,7 +4,10 @@ import { CPagination, CPaginationItem } from "@coreui/react";
 import axios from "axios";
 import io from "socket.io-client"; // Import socket.io-client
 
-const socket = io("http://localhost:5001"); // Set up socket connection with your backend
+const socket = io("http://localhost:5001", {
+  transports: ["websocket", "polling"], // Ajoute cette option
+ // Pour gérer les sessions/cookies si besoin
+});
 
 const getBadge = (status) => {
   switch (status) {
@@ -138,7 +141,6 @@ export const ReservationSmartTable = () => {
         cleaner
         itemsPerPage={5}
         activePage={page}
-        onPageChange={handlePageChange}
         scopedColumns={{
           date: (item) => (
             <td>{new Date(item.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}</td>

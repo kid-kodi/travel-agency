@@ -5,11 +5,15 @@ const User = require("../models/User");
 const auth = async (req, res, next) => {
   try {
     const token = req.header("Authorization")?.replace("Bearer ", "");
+    console.log("sss",token);
+    
     if (!token) {
+      console.log("Token manquant");
       throw new Error("Token manquant");
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("EN SEC",process.env.JWT_SECRET);
     const user = await User.findById(decoded._id);
 
     if (!user) {

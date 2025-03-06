@@ -175,7 +175,6 @@ export const TrajetSmartTable = ({onEdit, refreshTable }) => {
       cleaner
       clickableRows
       itemsPerPage={5}
-      onPageChange={(page) => setPage(page)}
       onFilteredItemsChange={(items) => {
         console.log('onFilteredItemsChange');
         console.table(items);
@@ -296,6 +295,7 @@ export const TrajetSmartTable = ({onEdit, refreshTable }) => {
                       {index + 1}
                     </CPaginationItem>
                   ))}
+                  
       
                   <CPaginationItem
                     aria-label="Next"

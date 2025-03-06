@@ -47,6 +47,8 @@ const corsOptions = {
   credentials: true,
   origin: "*",
 };
+
+
 app.use(cors(corsOptions));
 app.use("/", express.static(path.join(__dirname, "uploads")));
 
@@ -82,6 +84,9 @@ app.use("/api/chauffeur", chauffeurRoutes);
 app.use("/api/ville", villeRoutes);
 app.use("/api/trajet", trajetRoutes);
 app.use("/api/planning",planningRoutes);
+
+
+app.use(express.static('public'));
 
 // Gestion des erreurs
 app.use(ErrorHandler);

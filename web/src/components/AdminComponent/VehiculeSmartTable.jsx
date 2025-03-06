@@ -163,7 +163,6 @@ export const VehiculeSmartTable = ({ onEdit, refreshTable }) => {
         cleaner
         clickableRows
         itemsPerPage={5}
-        onPageChange={(page) => setPage(page)}
         onFilteredItemsChange={(items) => {
           console.log('onFilteredItemsChange');
           console.table(items);

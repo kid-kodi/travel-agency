@@ -24,7 +24,12 @@ import {
 } from '@coreui/react';
 
 export const DashbordFlux = () => {
-  const socket = io("http://localhost:5001");
+  
+const socket = io("http://localhost:5001", {
+  transports: ["websocket", "polling"], // Ajoute cette option
+ // Pour gérer les sessions/cookies si besoin
+});
+
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [paymentsByMonth, setPaymentsByMonth] = useState([]);
@@ -58,7 +63,7 @@ export const DashbordFlux = () => {
 
   const fetchPayments = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5001/api/payment/payments");
+      const { data } = await axios.get("http://localhost:5001/api/payment/payments", { timeout: 30000 });
       
       const total = data
         .filter(payment => payment.status === "succeeded")
@@ -178,7 +183,7 @@ export const DashbordFlux = () => {
 
     //compte rebourse
     let start = 0;
-    const duration = 2000; // Durée totale de l'animation en millisecondes (2 secondes)
+    const duration = 1000; // Durée totale de l'animation en millisecondes (2 secondes)
     const increment = totalAmount / (duration / 10); // Calcul de l'incrément
     const timer = setInterval(() => {
       start += increment;
