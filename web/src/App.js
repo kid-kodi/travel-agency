@@ -17,11 +17,11 @@ import DashboardAdmin from "./components/DashboardAdmin";
 
 import 'primeicons/primeicons.css'; 
 import "react-datepicker/dist/react-datepicker.css";
-
 import MethodePaiement from "./components/MethodePaiement";
 import Payment from "./components/Payement/Payement";
 import Completion from "./components/Payement/Completion";
 import EspeceForm from "components/Payement/EspeceForm";
+import PrivateRoute from "contexts/PrivateRoute";
 
 export default function App() {
   return (
@@ -42,7 +42,7 @@ export default function App() {
             <Route path="/completion" element={<Completion />} />
           </Route>
 
-          <Route path="/admin/*" element={<DashboardAdmin />} />
+          <Route path="/admin/*" element={<PrivateRoute><DashboardAdmin /></PrivateRoute>} />
 
           {/* Route sans Navbar */}
           <Route path="register" element={<Register />} /> {/* 🚀 Page sans Navbar */}

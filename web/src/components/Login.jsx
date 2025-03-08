@@ -48,7 +48,7 @@ const Login = () => {
       // Stocker le token et les infos utilisateur
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-
+      localStorage.setItem("userRole", data.user.isAdmin);
       // Redirection après connexion réussie
       if (data.user.isAdmin) {
         navigate("/admin");
