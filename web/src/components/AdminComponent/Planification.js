@@ -147,7 +147,7 @@ function Planification() {
           console.log("test",trajetsJour);
           console.log("voir",planningJour);
           return (
-            <CAccordionItem itemKey={index + 1} key={jour}>
+            <CAccordionItem itemKey={index + 1} key={jour} style={{ marginBottom: "1rem" }}>
               <CAccordionHeader>{jour}</CAccordionHeader>
               <CAccordionBody>
                 {trajetsJour.length > 0 ? (
@@ -159,9 +159,11 @@ function Planification() {
                           {trajet.origine} → {trajet.destination} | Départ: {trajet.horaire_depart} - Arrivée: {trajet.horaire_arrivee}  | Véhicule: {trajet.vehicule_id?.capacite} places
                         </Typography>
 
+                        <Box display="" justifyContent="flex-end">
                         <IconButton color="error" onClick={() => handleDeleteTrajet(planningJour[0]?._id)}>
                           <DeleteIcon />
                         </IconButton>
+                      </Box>
                         <Divider sx={{ my: 2 }} />
                         </Box>
                       ))}
@@ -183,25 +185,7 @@ function Planification() {
       </CAccordion>
 
 
-      
-
-      
-        {/* Affichage des trajets du jour actuel */}
-        {/* <CCard style={{ width: '18rem', marginTop: '1rem' }}>
-            <CCardBody>
-              <CCardTitle>Trajets du jour ({jourActuel})</CCardTitle>
-              {trajetsJourActuel.length > 0 ? (
-                trajetsJourActuel.map((trajet, idx) => (
-                  <CCardText key={idx}>
-                    <strong>{trajet.origine} → {trajet.destination}</strong> <br />
-                    Départ: {trajet.horaire_depart} - Arrivée: {trajet.horaire_arrivee}
-                  </CCardText>
-                ))
-              ) : (
-                <CCardText>Aucun trajet prévu aujourd'hui.</CCardText>
-              )}
-            </CCardBody>
-          </CCard> */}
+    
 
       <CModal alignment="center" visible={visible} onClose={() => setVisible(false)}>
         <CModalHeader>

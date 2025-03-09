@@ -250,9 +250,9 @@ function Chauffeur() {
                 />
               </Grid>
 
-              {!formData.isCIN ? (
+              {formData.isCIN ? (
                 <Grid item xs={6}>
-                  <label>Passeport <span style={{ color: "red" }}>*</span></label>
+                  <label>CIN <span style={{ color: "red" }}>*</span></label>
                   <CFormInput 
                     type="text" 
                     name="documents.cin" 
@@ -260,12 +260,11 @@ function Chauffeur() {
                     value={formData.documents.cin} 
                     onChange={handleChange} 
                   />
-
-                  {errors.passeport && <CAlert color="danger" style={{ fontSize: '0.875rem', margin: '0.25rem 0' }}>{errors.passeport}</CAlert>}
+                  {errors.cin && <CAlert color="danger" style={{ fontSize: '0.875rem', margin: '0.25rem 0' }}>{errors.cin}</CAlert>}
                 </Grid>
               ) : (
                 <Grid item xs={6}>
-                  <label>CIN <span style={{ color: "red" }}>*</span></label>
+                  <label>Passeport <span style={{ color: "red" }}>*</span></label>
                   <CFormInput 
                     type="text" 
                     name="documents.passeport" 
@@ -273,10 +272,10 @@ function Chauffeur() {
                     value={formData.documents.passeport} 
                     onChange={handleChange} 
                   />
-
-                  {errors.cin && <CAlert color="danger" style={{ fontSize: '0.875rem', margin: '0.25rem 0' }}>{errors.cin}</CAlert>}
+                  {errors.passeport && <CAlert color="danger" style={{ fontSize: '0.875rem', margin: '0.25rem 0' }}>{errors.passeport}</CAlert>}
                 </Grid>
               )}
+
 
               <Grid item xs={6}>
                 <label>Numéro de téléphone <span style={{ color: "red" }}>*</span></label>

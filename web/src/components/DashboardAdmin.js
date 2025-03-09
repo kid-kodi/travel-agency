@@ -7,6 +7,7 @@ import { createTheme } from '@mui/material/styles';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import { NAVIGATION } from './AdminComponent/SidebarNavigation';  // Assure-toi d'importer correctement NAVIGATION
+import { useLocation } from 'react-router-dom';
 
 // Import des composants
 import Dashboard from './AdminComponent/Dashboard';
@@ -64,6 +65,8 @@ DemoPageContent.propTypes = {
 // Composant principal pour le DashboardAdmin
 function DashboardAdmin(props) {
   const { window } = props;
+  console.log("Navigation Items:", NAVIGATION);
+
 
   return (
     <AppProvider

@@ -16,6 +16,7 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import LogoutIcon from '@mui/icons-material/Logout';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
+import { useNavigate } from 'react-router-dom';
 
 // Définir la configuration de la navigation
 export const NAVIGATION = [
@@ -97,44 +98,40 @@ export const NAVIGATION = [
       },
     ],
   },
-  {
-    segment: 'admin/logout',
-    title: 'Deconnexion',
-    icon: <LogoutIcon />,
-  }
+  { segment: 'logout', title: 'Déconnexion', icon: <LogoutIcon /> }
 ];
 
 // Composant SidebarNavigation qui génère la navigation dynamique
 function SidebarNavigation() {
+  const navigate = useNavigate(); 
+
+  const handleLogout = async () => {
+    console.log("Déconnexion en cours...");
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("http://localhost:5001/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        localStorage.clear();
+        navigate("/login");
+      } else {
+        console.error("Échec de la déconnexion :", await response.json());
+      }
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion :", error);
+    }
+  };
+
   return (
     <List>
-      {NAVIGATION.map((item, index) => {
-        // Si l'élément est un en-tête, on affiche le titre
-        if (item.kind === 'header') {
-          return (
-            <ListItem key={index}>
-              <ListItemText primary={item.title} />
-            </ListItem>
-          );
-        }
-
-        // Si l'élément est un séparateur, on l'affiche
-        if (item.kind === 'divider') {
-          return <Divider key={index} />;
-        }
-
-        // Si l'élément a un segment, on le transforme en lien de navigation avec le préfixe 'admin:'
-        if (item.segment) {
-          return (
-            <ListItem button component={Link} to={`${item.segment}`} key={index}>
-              <ListItemText primary={item.title} />
-              {item.icon && item.icon}
-            </ListItem>
-          );
-        }
-
-        return null;
-      })}
+      // a voir si on peut ajouter un logo    
     </List>
   );
 }

@@ -8,12 +8,13 @@ import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
 import DirectionsBusFilledIcon from '@mui/icons-material/DirectionsBusFilled';
 import io from 'socket.io-client'; 
 import { CCard, CCardHeader, CListGroup, CListGroupItem } from '@coreui/react'
-
+import { cilWc, cilWheelchair ,cilCalendar,cilGraph} from '@coreui/icons';
 // URL de votre serveur WebSocket
 
 import {
   CCol,
   CWidgetStatsC,
+
   CDropdown,
   CDropdownItem,
   CDropdownMenu,
@@ -365,7 +366,7 @@ const handleTrajetClick = (trajet) => {
         }
       />
     </CCol>
-  
+    {/* Trajets disponibles */}
     <CCol sm={6}>
       <CCard style={{ width: '35rem' }}>
         <CCardHeader>Depart disponibles pour aujourd'hui ({jourActuel})</CCardHeader>
@@ -380,59 +381,63 @@ const handleTrajetClick = (trajet) => {
               </CListGroupItem>
             ))
           ) : (
-            <CListGroupItem style={{ padding: '0.5rem 1rem', minHeight: '2rem' }}>
+            <CListGroupItem style={{ 
+              padding: '0.5rem 1rem', 
+              minHeight: '7rem' ,
+              padding: '0.5rem 1rem', 
+              minHeight: '7rem', 
+              backgroundColor:'rgba(32, 23, 24, 0.16)',  // Couleur de fond (rouge clair par défaut)
+              textAlign: 'center', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center' }}>
               Aucun trajet prévu aujourd'hui.
             </CListGroupItem>
           )}
         </CListGroup>
       </CCard>
     </CCol>
-
-  
-    {/* Clients */}
-    <CCol sm={6}>
-      <CWidgetStatsC
-        className="mb-3"
-        icon={<CIcon icon={cilChartPie} height={36} style={{ color: 'blue' }} />}
+     {/* Nombre de chauffeur client (Empilé) */}
+     <CCol xs={6}>
+      <CWidgetStatsF
+        className="mb-1"
+        style={{ height: '40%' }} 
+        icon={<CIcon icon={cilWc} height={36} style={{ color: '#2d6c43a3' }} />}
         progress={{ color: 'success', value: (totalClients / 100) * 100 }}
         title="Total Clients"
         value={totalClients}
       />
-    </CCol>
-  
-    {/* Nombre de réservations (Empilé) */}
-    <CCol xs={6}>
-    <CWidgetStatsF
-      style={{ height: '45%' }} // Ajuste la hauteur ici
-      color="primary"
-      icon={<CIcon icon={cilChartPie} height={20} />} // Réduction de l'icône aussi
-      title="Totale de réservations"
-      value={totalReservations}
-    />
-    <CWidgetStatsF
-      style={{ height: '45%' }} // Ajuste la hauteur ici
-      className="mb-3"
-      color="warning"
-      icon={<CIcon icon={cilChartPie} height={20} />} // Réduction de l'icône aussi
-      title="Totale trajets disponibles (Système %)"
-      value={totalTrajets}
-    />
-    </CCol>
-
-    {/* Conducteur */}
-    <CCol sm={6}>
-      <CWidgetStatsC
-        className="mb-3"
+      <CWidgetStatsF
+        className="mb-0"
         style={{
-          backgroundColor: 'rgba(210, 211, 221, 0.57)',  // Ajoute ici la couleur de fond
+          backgroundColor: 'rgba(210, 211, 221, 0.57)', // Ajoute ici la couleur de fond
+          height: '40%' 
         }}
-        icon={<CIcon icon={cilChartPie} height={36} style={{ color: '#b95d1a' }} />}
+        icon={<CIcon icon={cilWheelchair} height={36} style={{ color: '#b95d1a' }} />}
         progress={{ color: 'success', value: totalConducteurs ? (conducteursEnService / totalConducteurs) * 100 : 0 }}
         title="Conducteurs en service / Total "
         value={`${conducteursEnService} / ${totalConducteurs}`}
       />
     </CCol>
-
+    {/* Nombre de réservations (Empilé) */}
+    <CCol xs={6}>
+      <CWidgetStatsF
+        style={{ height: '40%' }} // Ajuste la hauteur ici
+        className="mb-1"
+        color="primary"
+        icon={<CIcon icon={cilCalendar} height={20} />} // Réduction de l'icône aussi
+        title="Totale de réservations"
+        value={totalReservations}
+      />
+      <CWidgetStatsF
+        style={{ height: '40%' }} // Ajuste la hauteur ici
+        className="mb-3"
+        color="warning"
+        icon={<CIcon icon={cilGraph} height={20} />} // Réduction de l'icône aussi
+        title="Totale trajets disponibles (Système %)"
+        value={totalTrajets}
+      />
+    </CCol>
     {/* Vehicules */}
     <CCol sm={6}>
       <div
@@ -455,8 +460,7 @@ const handleTrajetClick = (trajet) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}
-        />
-        
+        />   
         <p style={{ fontSize: '18px', color: '#333' }}>
           {`${vehiculesNonDisponibles} / ${totalVehicules}`}
         </p>
@@ -464,6 +468,5 @@ const handleTrajetClick = (trajet) => {
       </div>
     </CCol>
   </CRow>
-  
   )
 }
